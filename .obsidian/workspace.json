@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "design/user journey.md",
+                "file": "design/visual-design-study.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "user journey"
+              "title": "visual-design-study"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "design/user journey.md",
+                "file": "design/visual-design-study.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for user journey"
+              "title": "Backlinks for visual-design-study"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "design/user journey.md",
+                "file": "design/visual-design-study.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from user journey"
+              "title": "Outgoing links from visual-design-study"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "design/user journey.md",
+                "file": "design/visual-design-study.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of user journey"
+              "title": "Outline of visual-design-study"
             }
           }
         ]
@@ -183,8 +183,10 @@
       "bases:Create new base": false
     }
   },
-  "active": "b5bdec4b97ffe73b",
+  "active": "a02d58d817daa9f1",
   "lastOpenFiles": [
-    "design/user journey.md"
+    "design/concepts",
+    "design/user journey.md",
+    "design/visual-design-study.md"
   ]
 }
