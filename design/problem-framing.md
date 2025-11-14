@@ -1,5 +1,4 @@
 
-
 # Problem Framing
 
 ## Domain
@@ -32,14 +31,14 @@ Food waste: I often find that I have a random set of ingredients that I don't kn
 
 ## Features
 
+### Core Features
 - **Ingredient-Based Recipe Search**: input ingredients you have / want to use for a recipe and get recipes with zero or minimal missing ingredients
-- **Emphasizing Recipes Based on Inventory**: prioritize the recipes that the user has the most ingredients
 - **Saving Recipes**: save recipes to use from all sources (even Instagram)
+- **Shared Recipe Collections**: users can upload recipes for others to see on the app, and can consider others’ (public) recipes when searching for ingredient uses.
+### Possible Features to be implemented in the future
+- **Scaling Recipes**: scale recipes by a custom amount so that user can follow it for meal prepping rather than for one meal
 - **Recipe organization**: Tag and categorize a recipe to enable search through collection.
 - **Progress tracking**: mark recipes as "already made" to see what you've accomplished (maybe include answers to questions like "how much did you like the recipe you made?"). Track cooking history and (when you made it + notes)
-- **Scaling Recipes**: scale recipes by a custom amount so that user can follow it for meal prepping rather than for one meal
-- **Recipe sharing**: users can upload recipes for others to see on the app, and can consider others’ (public) recipes when searching for ingredient uses.
-
 - **Substitutions**: allow users to specify preferred substitutions, which can be considered when searching recipes based on existing ingredients (e.g. allow recipes with chicken to show up when the user only has tofu, if they specify the substitution)
 
 
