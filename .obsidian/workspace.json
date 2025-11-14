@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "design/visual-design-study.md",
+                "file": "design/development-plan.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "visual-design-study"
+              "title": "development-plan"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "design/visual-design-study.md",
+                "file": "design/development-plan.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for visual-design-study"
+              "title": "Backlinks for development-plan"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "design/visual-design-study.md",
+                "file": "design/development-plan.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from visual-design-study"
+              "title": "Outgoing links from development-plan"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "design/visual-design-study.md",
+                "file": "design/development-plan.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of visual-design-study"
+              "title": "Outline of development-plan"
             }
           }
         ]
@@ -183,10 +183,12 @@
       "bases:Create new base": false
     }
   },
-  "active": "a02d58d817daa9f1",
+  "active": "b5bdec4b97ffe73b",
   "lastOpenFiles": [
+    "design/design-summary.md",
+    "design/development-plan.md",
+    "design/visual-design-study.md",
     "design/concepts",
-    "design/user journey.md",
-    "design/visual-design-study.md"
+    "design/user journey.md"
   ]
 }
