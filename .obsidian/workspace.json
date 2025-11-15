@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "design/problem-framing.md",
+                "file": "design/user journey.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "problem-framing"
+              "title": "user journey"
             }
           },
           {
@@ -108,7 +108,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "design/problem-framing.md",
+                "file": "design/user journey.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -118,7 +118,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for problem-framing"
+              "title": "Backlinks for user journey"
             }
           },
           {
@@ -127,12 +127,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "design/problem-framing.md",
+                "file": "design/user journey.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from problem-framing"
+              "title": "Outgoing links from user journey"
             }
           },
           {
@@ -170,13 +170,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "design/problem-framing.md",
+                "file": "design/user journey.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of problem-framing"
+              "title": "Outline of user journey"
             }
           }
         ]
@@ -199,8 +199,8 @@
   },
   "active": "b5bdec4b97ffe73b",
   "lastOpenFiles": [
-    "design/user journey.md",
     "design/problem-framing.md",
+    "design/user journey.md",
     "design/development-plan.md",
     "design/design-summary.md",
     "design/visual-design-study.md",
