@@ -1,4 +1,6 @@
 
+# Recipe
+
 * **concept**: Recipe [User, Ingredient]
 * **purpose**: represent the essential information needed to prepare a dish
 * **principle**: a user adds a recipe with the name of the dish, the ingredients needed, and the list of instructions or link to the recipe; this recipe can then be viewed by the user, and possibly other users
@@ -47,3 +49,8 @@
   * `_getAllRecipes(owner: User): (recipes: List<Recipe>)`
 	* **requires** this `owner` exists in the set of `Recipes`
 	* **effects** returns all the `Recipe`s associated with this `owner`
+
+
+# Notes
+
+- `isCopy` is a flag to determine whether a Recipe is a copy of another recipe (from a different user) 

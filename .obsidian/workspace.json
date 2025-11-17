@@ -186,9 +186,11 @@
   "active": "71b75b8c39bc24a3",
   "lastOpenFiles": [
     "design/design-summary.md",
+    "design/concepts/Collecting.md",
+    "design/concepts/Recipe.md",
+    "design/concepts",
     "Untitled 1.base",
     "Untitled.md",
-    "design/concepts/Recipe.md",
     "Untitled.base",
     "weekly-meeting-notes/nov-11.md",
     "design/user journey.md",
@@ -196,7 +198,6 @@
     "Untitled.canvas",
     "design/problem-framing.md",
     "design/development-plan.md",
-    "design/visual-design-study.md",
-    "design/concepts"
+    "design/visual-design-study.md"
   ]
 }
