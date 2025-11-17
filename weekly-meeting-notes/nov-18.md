@@ -25,15 +25,16 @@
 
 ---
 
-### Issues
+### Questions
 
-- a
+- How should we filter our recipes in the concept? (or would it be in some for loop in the sync)
+- Thoughts / Opinions on UI
 
 ---
 
 ### Plans & Decisions
 
-- Follow development plan and have a bare bones working app 
+- Follow development plan and have a bare bones working app
 ---
 
 ### Additional Notes

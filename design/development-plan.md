@@ -6,6 +6,7 @@ A table showing which features you expect to deliver at various stages, includin
 
 | Feature                     | Delivered by which stage         |
 | --------------------------- | -------------------------------- |
+| Frontend Pages              | 11/22 or 11/23 morning           |
 | Saving Recipes              | alpha checkpoint                 |
 | Account creation/management | Alpha checkpoint                 |
 | Ingredient search           | Alpha checkpoint                 |
