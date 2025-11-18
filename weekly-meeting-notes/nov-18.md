@@ -7,6 +7,7 @@
 1. Progress Report (10 minutes)
 2. Ask any questions we have about functional design assignment
 3. Discuss future assignment
+4. Plans for next meeting
 
 ---
 
@@ -28,6 +29,7 @@
 ### Questions
 
 - How should we filter our recipes in the concept? (or would it be in some for loop in the sync)
+- Thoughts on our set of concepts (are there too few, are they well-scoped)
 - Thoughts / Opinions on UI
 
 ---
@@ -39,5 +41,4 @@
 
 ### Additional Notes
 
-- Other groups are tackling **one domain, one problem** so we can do the same.
-- Comparables are meant to showcase that others try to solve the problem/problems adjacent to ours
+
