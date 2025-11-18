@@ -17,9 +17,9 @@
     * a `quantity` `number`
     * a `name` `String`
 * **actions**
-  * `createRecipe(owner: User, title: String, link?: String, description?: String)`
+  * `createRecipe(owner: User, title: String, link?: String, description?: String): (recipe: Recipe)`
 	  * **requires** this `owner` doesn't already have a Recipe with this `title`
-	  * **effects** creates a new `Recipe` with this `owner`, this `title`, and (this `link` or this `description`)
+	  * **effects** creates a new `Recipe` with this `owner`, this `title`, and (this `link` or this `description`), returns this recipe
   * `deleteRecipe(requestedBy: User, recipe: Recipe)`
 	  * **requires** this `recipe` has an owner who is this `requestedBy`
 	  * **effects** removes this `recipe` from the set of `Recipe`s
@@ -50,18 +50,18 @@
   * `deleteImage(requestedBy: User, recipe: Recipe)`
 	* **requires** this `recipe` has an owner who is this `requestedBy`, image exists in this `recipe`
 	* **effects** removes the `image` in this recipe
-  * `parseFromLink(owner: User, link: String, llm: GeminiLLM)`
+  * `parseFromLink(owner: User, link: String, llm: GeminiLLM): (recipe: Recipe)`
 	* **requires** this `link` is valid and accessible
-	* **effects** uses this `llm` to parse this `link` to add a recipe with this `owner`, will add information to this `title`, this `ingredients`, and this `link`
-  * copyRecipe(requestedBy: User, recipe: Recipe)`
+	* **effects** uses this `llm` to parse this `link` to add a recipe with this `owner`, will add information to this `title`, this `ingredients`, and this `link`, returns this recipe
+  * `copyRecipe(requestedBy: User, recipe: Recipe): (recipe: Recipe)`
 	* **requires** this `recipe` exists in the set of `Recipe`s
-	* **effects** creates a new `recipe` with the same fields as this `recipe`, but this `owner` is now this `requestedBy`, changes `isCopy` of this `recipe` and the new `recipe` to True
+	* **effects** creates a new `recipe` with the same fields as this `recipe`, but this `owner` is now this `requestedBy`, changes `isCopy` of this `recipe` and the new `recipe` to True, returns this new recipe
   * `parseIngredients(requestedBy: User, recipe: Recipe, ingredientsText: String)`
 	* **requires** this `recipe` has an owner who is this `requestedBy`
 	* **effects** parses this `ingredientsText` into individual `Ingredient`s as part of this `recipe`'s `ingredients`
   * `addIngredient(quantity: number, foodName: String): (ingredient: Ingredient)`
 	* **requires** this `quantity` and `foodName` isn't already in the set of `Ingredient`s
-	* **effects** creates a new `Ingredient` with this `quantity` and `foodName`
+	* **effects** creates a new `Ingredient` with this `quantity` and `foodName`, returns this ingredient
   * `deleteIngredient(ingredient: Ingredient)`
 	* **requires** this `ingredient` exists in the set of `Ingredient`s
 	* **effects** removes this `ingredient` from the set of `Ingredient`s
