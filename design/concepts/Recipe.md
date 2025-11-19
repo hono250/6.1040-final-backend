@@ -88,7 +88,10 @@
 	* **requires** this `owner` exists in the set of `Recipes`
 	* **effects** returns all the `Recipe`s associated with this `owner`
   * `_getIngredients(): (ingredients: List<Ingredient>)`
-	* **requires** returns all the `Ingredient`s in the set of `Ingredient`s
+	* **effects** returns all the `Ingredient`s in the set of `Ingredient`s
+  * `_getIngredientsByName(name: String): (ingredients: List<Ingredient>)`
+	* **requires** this `name` to exists in the set of `Ingredient`s
+	* **effects** returns all the `Ingredient`s that have this `name` 
   * `_scaleIngredients(inputIngredients: List<Ingredient>, scale: number): (ingredients: List<Ingredient>)`
 	* **requires** this `scale` is a positive number
 	* **effects** creates an ingredients for each ingredient in this `inputIngredients` (without adding to set of `Ingredients`) with `amount = amount * scale`, and returns the list of those ingredients.
