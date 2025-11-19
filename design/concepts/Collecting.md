@@ -42,16 +42,6 @@ After creating a collection, members can add items and other members, and all me
 - **Requires**: `removedBy` is in collection members
 - **Effect**: Removes `item` from collection items
 
-`getItems (collection: Collection, requestingUser: User): (items: set of Item)`
-- **Requires**: `requestingUser` is in collection members
-- **Effect**: Returns all items in collection
-
-`getMembers (collection: Collection): (members: set of User)`
-- **Effect**: Returns all members of collection
-
-`getCollections (user: User): (collections: set of Collection)`
-- **Effect**: Returns all collections where `user` is a member
-
 `rename (collection: Collection, newName: String, requestedBy: User)`
 - **Requires**: `requestedBy` is collection owner
 - **Effect**: Updates collection name
@@ -59,6 +49,26 @@ After creating a collection, members can add items and other members, and all me
 `delete (collection: Collection, requestedBy: User)`
 - **Requires**: `requestedBy` is collection owner
 - **Effect**: Removes collection
+- 
+## System Actions
+`removeItemSystemwide (item: Item)`
+  - **Effect**: Removes item from all collections across all users
+
+## Queries
+`_getItems (collection: Collection, requestingUser: User): (items: set of Item)`
+- **Requires**: `requestingUser` is in collection members
+- **Effect**: Returns all items in collection
+
+`_getMembers (collection: Collection): (members: set of User)`
+- **Effect**: Returns all members of collection
+
+`_getCollections (user: User): (collections: set of Collection)`
+- **Effect**: Returns all collections where `user` is a member
+  
+`_getCollectionsWithItemStatus (user: User, item: Item): (collectionsWithStatus: List<{collection: Collection, hasItem: Boolean}>)`
+- **Effect**: Returns all collections where `user` is a member, with a flag indicating whether `item` is in each collection
+
+
 
 ## Notes
 - Any member of a collection can add or remove items
