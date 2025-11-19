@@ -257,6 +257,6 @@ then
 
 **Orphaned Recipes:**
 Recipes created via import/manual creation are not automatically added to any collection. Users can:
-- View all their recipes via `getAllMyRecipes` sync (Recipe._getAllRecipes)
+- View all their recipes via `getAllMyRecipes` sync (`Recipe._getAllRecipes`)
 - Add recipes to collections via `addRecipeToCollection` sync (singular - one collection at a time)
 - UI can show "unorganized recipes" (recipes not in any collection) and prompt users to organize them

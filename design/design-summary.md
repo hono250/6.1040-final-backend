@@ -4,17 +4,17 @@ Design summary: A summary of the overall design: how the concepts work together 
 
 ## Concepts
 
-We currently have 4 major concepts: **User**, **Collecting**, **Recipe**, and **Ingredient**. 
+We currently have 3 main concepts: **User**, **Collecting**, **Recipe**
 
-**User** handles the account setup and management—when users visit the site, they'll be able to view global recipes, but won't be able to do anything else until creating an account and/or signing in. 
+**User** handles the account setup and management—when users visit the site, they'll be able to view global recipes, but won't be able to do anything else until creating an account and/or signing in. **User** also handles session authentication, and will be relied upon in syncs to ensure users' identity.
 
-**Recipe** is the core recipe representation—it mainly handles CRUD operations, and allows users to define various elements of the recipe, including the title, ingredients, and optionally, a link to the original recipe (if imported from another platform), and a description. It also keeps track of ownership
+**Recipe** is the core recipe representation—it mainly handles CRUD operations, and allows users to define various elements of the recipe, including the title, ingredients, and optionally, a link to the original recipe (if imported from another platform), and a description. It also keeps track of ownership.
 
 **Collecting** handles collections of recipes, which can be used to share recipes with other users, or to group one's own recipes. This also is mostly CRUD operations, and includes elements such as the collection name, owner, members, and items within the collection. Once a user creates a recipe, or finds a recipe that they like, they can add it to various collections in order to share it with other users. 
 
 Additional functionality that comes from interactions between the concepts includes: 
 - Searching for recipes - this requires both the Collecting and Recipe concepts. Users can find recipes within or between collections by searching/filtering on the recipe name or the ingredients in the recipe. 
-- 
+- Global vs personal recipes - this is also implemented with syncs between Collecting and Recipe. Users will be able to keep the recipes they create in their private collections, but also have the option to make their recipes public/global, which (on the backend) functions by adding the recipe to a "global" collection with all users. 
 
 ## Ethical analysis
 
