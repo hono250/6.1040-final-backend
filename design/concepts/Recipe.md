@@ -69,17 +69,17 @@
 	* **effects** modifies `inputIngredient` to have `newName`, `newAmount`, and `newUnit`, leaving omitted fields unmodified
 
 * **queries**
-  * `_findRecipeByIngredient(ingredients: List<Ingredient>): (recipes: List<Recipe>)`
-	* **effects** returns all the `Recipes` that have these `ingredients`, where the initial recipes are the ones that have the most ingredients in these `ingredients`
+  * `_findRecipeByIngredient(ingredients: List<String>): (recipes: List<Recipe>)`
+	* **effects** returns all the `Recipes` that have these `ingredients` (which are the food names), where the initial recipes are the ones that have the most ingredients in these `ingredients`
   * `_search(query: String): (recipes: List<Recipe>)`
 	* **effects** returns all the `Recipes` that have this `query` in this `title`
-  * `_findRecipeByIngredientWithinRecipes(ingredients: List<Ingredient>, recipes: List<Recipe>): (newRecipes: List<Recipe>)`
-	* **effects** returns all the `Recipes` in these `recipes` that have these `ingredients`, where the initial recipes are the ones that have the most ingredients in these `ingredients`
+  * `_findRecipeByIngredientWithinRecipes(ingredients: List<String>, recipes: List<Recipe>): (newRecipes: List<Recipe>)`
+	* **effects** returns all the `Recipes` in these `recipes` that have these `ingredients` (which are the food names), where the initial recipes are the ones that have the most ingredients in these `ingredients`
   * `_searchWithinRecipes(query: String, recipes: List<Recipe>): (newRecipes: List<Recipe>)`
 	* **effects** returns all the `Recipes` in these `recipes` that have this `query` in this `title`
-  * `_filterIngredientAndSearch(query: String, ingredients: List<Recipe>): (recipes: List<Recipe>)`
+  * `_filterIngredientAndSearch(query: String, ingredients: List<String>): (recipes: List<Recipe>)`
 	* **effects** returns all the `Recipes` that have this `query` in this `title` and these `ingredients`, where the initial recipes are the ones that have the most ingredients in these `ingredients
-  * `_filterIngredientAndSearchWithinRecipes(recipes: List<Recipe> query: String, ingredients: List<Recipe>): (newRecipes: List<Recipe>)`
+  * `_filterIngredientAndSearchWithinRecipes(recipes: List<Recipe> query: String, ingredients: List<String>): (newRecipes: List<Recipe>)`
 	* **effects** returns all the `Recipes` in these `recipes` that have this `query` in this `title` and these `ingredients`, where the initial recipes are the ones that have the most ingredients in these `ingredients`
   * `_getRecipe(owner: User, title: String): (recipe: Recipe)`
 	* **requires** this `owner` and this `title` exists in the set of `Recipes`
