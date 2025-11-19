@@ -84,12 +84,7 @@ then
       if item not in scopedRecipes:
         add item to scopedRecipes
   
-  ingredients = []
-  for each ingredientName in ingredientNames:
-    Recipe.addIngredient(quantity: 0, foodName: ingredientName): (ingredient)
-    add ingredient to ingredients
-  
-  Recipe._filterIngredientAndSearchWithinRecipes(recipes: scopedRecipes, query: titleQuery, ingredients): (results)
+  Recipe._filterIngredientAndSearchWithinRecipes(recipes: scopedRecipes, query: titleQuery, ingredientNames): (results)
   
   return results
 ```
