@@ -1,7 +1,7 @@
 
 # Recipe
 
-* **concept**: Recipe [User, Ingredient]
+* **concept**: Recipe [User]
 * **purpose**: represent the essential information needed to prepare a dish
 * **principle**: a user adds a recipe with the name of the dish, the ingredients needed, and the list of instructions or link to the recipe; this recipe can then be viewed by the user, and possibly other users
 * **state**
