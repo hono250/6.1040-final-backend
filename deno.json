@@ -14,7 +14,8 @@
     "tasks": {
         "start": "deno run --allow-net --allow-write --allow-read --allow-sys --allow-env src/main.ts",
         "import": "deno run --allow-read --allow-write --allow-env src/utils/generate_imports.ts",
-        "build": "deno run import"
+        "build": "deno run import",
+        "test": "deno test --allow-net --allow-read --allow-env --allow-sys"
     },
     "lint": {
         "rules": {
