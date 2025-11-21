@@ -273,17 +273,17 @@ export default class CollectingConcept {
    */
   async _getItems(
     { collection, requestingUser }: { collection: CollectionEntity; requestingUser: User }
-  ): Promise<{ items: Item[] } | { error: string }> {
+  ): Promise<Array<{ items: Item[] } | { error: string }>> {
     const collectionDoc = await this.collections.findOne({ _id: collection });
     if (!collectionDoc) {
-      return { error: `Collection with ID ${collection} not found.` };
+      return [{ error: `Collection with ID ${collection} not found.` }];
     }
 
     if (!collectionDoc.members.includes(requestingUser)) {
-      return { error: "Only members can view collection items." };
+      return [{ error: "Only members can view collection items." }];
     }
 
-    return { items: collectionDoc.items };
+    return [{ items: collectionDoc.items }];
   }
 
   /**
@@ -292,13 +292,13 @@ export default class CollectingConcept {
    */
   async _getMembers(
     { collection }: { collection: CollectionEntity }
-  ): Promise<{ members: User[] } | { error: string }> {
+  ): Promise<Array<{ members: User[] } | { error: string }>>{
     const collectionDoc = await this.collections.findOne({ _id: collection });
     if (!collectionDoc) {
-      return { error: `Collection with ID ${collection} not found.` };
+      return [{ error: `Collection with ID ${collection} not found.` }];
     }
 
-    return { members: collectionDoc.members };
+    return [{ members: collectionDoc.members }];
   }
 
   /**
