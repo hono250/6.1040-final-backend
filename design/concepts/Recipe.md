@@ -53,7 +53,7 @@
 	* **effects** removes the `image` in this recipe
   * `parseFromLink(owner: User, link: String, llm: GeminiLLM): (recipe: Recipe)`
 	* **requires** this `link` is valid and accessible
-	* **effects** uses this `llm` to parse this `link` to add a recipe with this `owner`, will add information to this `title`, this `ingredients`, and this `link`, returns this recipe
+	* **effects** uses this `llm` to parse this `link` to add a recipe with this `owner`, will add information to this `title`, this `ingredients`, and this `link`, returns this recipe`
   * `copyRecipe(requestedBy: User, recipe: Recipe): (recipe: Recipe)`
 	* **requires** this `recipe` exists in the set of `Recipe`s
 	* **effects** creates a new `recipe` with the same fields as this `recipe`, but this `owner` is now this `requestedBy`, changes `isCopy` of this `recipe` and the new `recipe` to True, returns this new recipe
