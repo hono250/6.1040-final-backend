@@ -1,4 +1,4 @@
-import { Collection, Db } from "mongodb";
+import { Collection, Db } from "npm:mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
 
@@ -103,7 +103,9 @@ export default class RecipeConcept {
      * **effects** removes this `recipe` from the set of `Recipe`s
      */
     async deleteRecipe({ requestedBy, recipe }: { requestedBy: User, recipe: Recipe }): Promise<Empty | { error: string }> {
-        this.checkRecipeAndOwner({ requestedBy, recipe });
+        const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
+        if ("error" in existing) return { error: existing.error };
+
         await this.recipes.deleteOne({ _id: recipe });
         return {};
     }
@@ -214,7 +216,7 @@ export default class RecipeConcept {
         const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
         if ("error" in existing) return { error: existing.error };
 
-        if (!existing.description || existing.description.trim() === "") {
+        if (!description || description.trim() === "") {
             return { error: "Description must be more than just empty space" };
         }
 
@@ -330,10 +332,18 @@ export default class RecipeConcept {
     
     // Ingredient Actions
 
+    /**
+     * Helper to create ingredients
+     * 
+     * @param name ingredient name
+     * @param quantity ingredient quantity
+     * @param unit units of measurement for quantity
+     * @returns (a promise of) the created IngredientDoc, with name in lowercase
+     */
     private async createIngredientHelper(name: string, quantity: number, unit: string): Promise<IngredientDoc> {
         const newIngred: IngredientDoc = {
             _id: freshID(),
-            name,
+            name: name.toLowerCase(),
             quantity,
             unit,
         };
@@ -370,6 +380,7 @@ export default class RecipeConcept {
             const newIngred = await this.createIngredientHelper(name, quantity, unit);
             createdIngredients.push(newIngred);
         }
+        await this.recipes.updateOne({ _id: recipe }, { $set: { ingredients: createdIngredients } });
         return { ingredients: createdIngredients };
     }
 
@@ -382,6 +393,7 @@ export default class RecipeConcept {
         if (!name || name.trim() === "") {
             return { error: "Ingredient name cannot be empty." };
         }
+        
         const newIngred = await this.createIngredientHelper(name, quantity, unit);
         return { ingredient: newIngred };
     }
@@ -655,13 +667,13 @@ export default class RecipeConcept {
     }
 
     /**
-     * _getRecipe(owner: User, title: String): (recipe: Recipe)
+     * _getRecipe(owner: User, title: String): (recipes: List<Recipe>)
      *
      * **requires** this `owner` and this `title` exists in the set of `Recipes`
      *
-     * **effects** returns the `Recipe` associated with this `owner` and this `title`
+     * **effects** returns the `Recipe`s associated with this `owner` and this `title`
      */
-    async _getRecipe({ owner, title }: { owner: User, title: string }): Promise<{ recipe: RecipeDoc } | { error: string }> {
+    async _getRecipe({ owner, title }: { owner: User, title: string }): Promise<{ recipes: RecipeDoc[] } | { error: string }> {
         if (!owner) {
             return { error: "Owner ID is required." };
         }
@@ -670,12 +682,12 @@ export default class RecipeConcept {
         }
 
 
-        const recipe = await this.recipes.findOne({ owner, title });
-        if (!recipe) {
+        const recipes = await this.recipes.find({ owner, title }).toArray();
+        if (recipes.length === 0) {
             return { error: `Recipe with title "${title}" for this owner not found.` };
         }
 
-        return { recipe };
+        return { recipes };
     }
 
     /**
