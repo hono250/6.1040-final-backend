@@ -47,6 +47,13 @@ export default class RecipeConcept {
     }
 
 
+    /**
+     * createRecipe(owner: User, title: String, link?: String, description?: String): (recipe: Recipe)
+     *
+     * **requires** this `owner` doesn't already have a Recipe with this `title`
+     *
+     * **effects** creates a new `Recipe` with this `owner`, this `title`, and (this `link` or this `description`), returns this recipe
+     */
     async createRecipe({ owner, title, link, description }: { owner: User, title: string, link?: string, description?: string }): Promise<{ recipe: Recipe } | { error: string }> {
         const existing = await this.recipes.findOne({ owner, title });
 
@@ -88,12 +95,26 @@ export default class RecipeConcept {
         }
         return existing;
     }
+    /**
+     * deleteRecipe(requestedBy: User, recipe: Recipe)
+     *
+     * **requires** this `recipe` has an owner who is this `requestedBy`
+     *
+     * **effects** removes this `recipe` from the set of `Recipe`s
+     */
     async deleteRecipe({ requestedBy, recipe }: { requestedBy: User, recipe: Recipe }): Promise<Empty | { error: string }> {
         this.checkRecipeAndOwner({ requestedBy, recipe });
         await this.recipes.deleteOne({ _id: recipe });
         return {};
     }
 
+    /**
+     * addIngredientToRecipe(requestedBy: User, recipe: Recipe, ingredient: Ingredient)
+     *
+     * **requires** this `recipe` has an owner who is this `requestedBy`, this `ingredient` isn't already in that `Recipe`
+     *
+     * **effects** adds this `ingredient` to the `Recipe` with this `owner` and this `title`
+     */
     async addIngredientToRecipe({ requestedBy, recipe, ingredient }: { requestedBy: User, recipe: Recipe, ingredient: Ingredient }): Promise<Empty | { error: string }> {
         const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
         if ("error" in existing) return { error: existing.error };
@@ -116,6 +137,13 @@ export default class RecipeConcept {
         return {};
     }
 
+    /**
+     * removeIngredientFromRecipe(requestedBy: User, recipe: Recipe, ingredient: Ingredient)
+     *
+     * **requires** this `recipe` has an owner who is this `requestedBy`, this `ingredient` exists in this `recipe`
+     *
+     * **effects** removes this `ingredient` from this `recipe`
+     */
     async removeIngredientFromRecipe({ requestedBy, recipe, ingredient }: { requestedBy: User, recipe: Recipe, ingredient: Ingredient }): Promise<Empty | { error: string }> {
         const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
         if ("error" in existing) return { error: existing.error };
@@ -134,6 +162,13 @@ export default class RecipeConcept {
         return {};
     }
 
+    /**
+     * setLink(requestedBy: User, recipe: Recipe, link: String)
+     *
+     * **requires** this `recipe` has an owner who is this `requestedBy`
+     *
+     * **effects** sets the `link` for this `recipe` to this `link`
+     */
     async setLink({ requestedBy, recipe, link }: { requestedBy: User, recipe: Recipe, link: string }): Promise<Empty | { error: string }> {
         const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
         if ("error" in existing) return { error: existing.error };
@@ -146,6 +181,13 @@ export default class RecipeConcept {
         return {};
     }
 
+    /**
+     * removeLink(requestedBy: User, recipe: Recipe)
+     *
+     * **requires** this `recipe` has an owner who is this `requestedBy`, this `recipe` has a `description`
+     *
+     * **effects** removes the `link` from this `recipe`
+     */
     async removeLink({ requestedBy, recipe }: { requestedBy: User, recipe: Recipe }): Promise<Empty | { error: string }> {
         const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
         if ("error" in existing) return { error: existing.error };
@@ -161,6 +203,13 @@ export default class RecipeConcept {
         return {};
     }
 
+    /**
+     * setDescription(requestedBy: User, recipe: Recipe, description: String)
+     *
+     * **requires** this `recipe` has an owner who is this `requestedBy`
+     *
+     * **effects** sets the `description` for this `recipe`
+     */
     async setDescription({ requestedBy, recipe, description }: { requestedBy: User, recipe: Recipe, description: string }): Promise<Empty | { error: string }> {
         const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
         if ("error" in existing) return { error: existing.error };
@@ -173,6 +222,13 @@ export default class RecipeConcept {
         return {};
     }
 
+    /**
+     * removeDescription(requestedBy: User, recipe: Recipe)
+     *
+     * **requires** this `recipe` has an owner who is this `requestedBy`, this `Recipe` has a `link`
+     *
+     * **effects** removes the `description` associated with this `recipe`
+     */
     async removeDescription({ requestedBy, recipe }: { requestedBy: User, recipe: Recipe }): Promise<Empty | { error: string }> {
         const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
         if ("error" in existing) return { error: existing.error };
@@ -188,6 +244,13 @@ export default class RecipeConcept {
         return {};
     }
 
+    /**
+     * setRecipeCopy(requestedBy: User, recipe: Recipe, isCopy: flag)
+     *
+     * **requires** this `recipe` has an owner who is this `requestedBy`
+     *
+     * **effects** sets the `isCopy` in this `recipe` to this `isCopy`
+     */
     async setRecipeCopy({ requestedBy, recipe, isCopy }: { requestedBy: User, recipe: Recipe, isCopy: boolean }): Promise<Empty | { error: string }> {
         const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
         if ("error" in existing) return { error: existing.error };
@@ -196,6 +259,13 @@ export default class RecipeConcept {
         return {};
     }
 
+    /**
+     * setImage(requestedBy: User, recipe: Recipe, image: String)
+     *
+     * **requires** this `recipe` has an owner who is this `requestedBy`
+     *
+     * **effects** sets the `image` in this `recipe` to this `image`
+     */
     async setImage({ requestedBy, recipe, image }: { requestedBy: User, recipe: Recipe, image: string }): Promise<Empty | { error: string }> {
         const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
         if ("error" in existing) return { error: existing.error };
@@ -204,6 +274,13 @@ export default class RecipeConcept {
         return {};
     }
 
+    /**
+     * deleteImage(requestedBy: User, recipe: Recipe)
+     *
+     * **requires** this `recipe` has an owner who is this `requestedBy`, image exists in this `recipe`
+     *
+     * **effects** removes the `image` in this recipe
+     */
     async deleteImage({ requestedBy, recipe }: { requestedBy: User, recipe: Recipe }): Promise<Empty | { error: string }> {
         const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
         if ("error" in existing) return { error: existing.error };
@@ -217,6 +294,13 @@ export default class RecipeConcept {
         return {};
     }
 
+    /**
+     * copyRecipe(requestedBy: User, recipe: Recipe): (recipe: Recipe)
+     *
+     * **requires** this `recipe` exists in the set of `Recipe`s
+     *
+     * **effects** creates a new `recipe` with the same fields as this `recipe`, but this `owner` is now this `requestedBy`, changes `isCopy` of this `recipe` and the new `recipe` to True, returns this new recipe
+     */
     async copyRecipe({ requestedBy, recipe }: { requestedBy: User, recipe: Recipe }): Promise<{ recipe: Recipe } | { error: string }> {
         const existing = await this.recipes.findOne({ _id: recipe });
         if (!existing) {
@@ -242,12 +326,104 @@ export default class RecipeConcept {
     }
 
     //TODO:
-    // parseFromLink()
-    // parseIngredients()
-    // createIngredient()
-    // deleteIngredient()
-    // editIngredient()
+    // parseFromLink() (llm augmented)
+    
+    // Ingredient Actions
 
+    private async createIngredientHelper(name: string, quantity: number, unit: string): Promise<IngredientDoc> {
+        const newIngred: IngredientDoc = {
+            _id: freshID(),
+            name,
+            quantity,
+            unit,
+        };
+        await this.ingredients.insertOne(newIngred);
+        return newIngred;
+    }
+
+    // Note: Is returning a list of IngredientDocs allowed (composite type)?
+    /**
+     * parseIngredients(requestedBy: User, recipe: Recipe, ingredientsText: String)
+     *
+     * **requires** this `recipe` has an owner who is this `requestedBy`
+     *  ingredientsText must be line separated and in the format: "quantity,unit,name" for each line
+     *  
+     * **effects** parses this `ingredientsText` into individual `Ingredient`s as part of this `recipe`'s `ingredients`
+     */
+    async parseIngredients({ requestedBy, recipe, ingredientsText }: { requestedBy: User, recipe: Recipe, ingredientsText: string }): Promise<{ ingredients: IngredientDoc[] } | { error: string }> {
+        const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
+        if ("error" in existing) return { error: existing.error };
+        // Simple parsing logic: each line is "quantity,unit,name"
+        const lines = ingredientsText.split("\n").map(line => line.trim()).filter(line => line.length > 0);
+        const createdIngredients: IngredientDoc[] = [];
+        for (const line of lines) {
+            const parts = line.split(",");
+            if (parts.length !== 3) {
+                return { error: `Invalid ingredient format: ${line}` };
+            }
+            const quantity = parseFloat(parts[0]);
+            if (isNaN(quantity)) {
+                return { error: `Invalid quantity: ${parts[0]}` };
+            }
+            const unit = parts[1];
+            const name = parts[2];
+            const newIngred = await this.createIngredientHelper(name, quantity, unit);
+            createdIngredients.push(newIngred);
+        }
+        return { ingredients: createdIngredients };
+    }
+
+    /**
+     * createIngredient(name: String, quantity: number, unit: String): (ingredient: Ingredient)
+     *
+     * **effects** creates a new `Ingredient` with this `name`, this `quantity`, and this `unit`, returns this ingredient
+     */
+    async createIngredient({ name, quantity, unit }: { name: string, quantity: number, unit: string }): Promise<{ ingredient: IngredientDoc } | { error: string }> {
+        if (!name || name.trim() === "") {
+            return { error: "Ingredient name cannot be empty." };
+        }
+        const newIngred = await this.createIngredientHelper(name, quantity, unit);
+        return { ingredient: newIngred };
+    }
+
+    /**
+     * deleteIngredient(ingredient: Ingredient)
+     *
+     * **requires** this `ingredient` exists in the set of `Ingredient`s
+     *
+     * **effects** removes this `ingredient` from the set of `Ingredient`s
+     */
+    async deleteIngredient({ ingredient }: { ingredient: Ingredient }): Promise<Empty | { error: string }> {
+        const existing = await this.ingredients.findOne({ _id: ingredient });
+        if (!existing) {
+            return { error: "Ingredient not found" };
+        }
+        await this.ingredients.deleteOne({ _id: ingredient });
+        return {};
+    }
+    /**
+     * editIngredient(inputIngredient: Ingredient, newName?: String, newQuantity?: number, newUnit?: String): (ingredient: Ingredient)
+     *
+     * **effects** modifies `inputIngredient` to have `newName`, `newAmount`, and `newUnit`, leaving omitted fields unmodified
+     */
+    async editIngredient({ inputIngredient, newName, newQuantity, newUnit }: { inputIngredient: Ingredient, newName?: string, newQuantity?: number, newUnit?: string }): Promise<Empty | { error: string }> {
+        const existing = await this.ingredients.findOne({ _id: inputIngredient });
+        if (!existing) {
+            return { error: "Ingredient not found" };
+        }
+        const updateFields: Partial<IngredientDoc> = {};
+        if (newName && newName.trim() !== "") {
+            updateFields.name = newName;
+        }
+        if (newQuantity !== undefined) {
+            updateFields.quantity = newQuantity;
+        }
+        if (newUnit && newUnit.trim() !== "") {
+            updateFields.unit = newUnit;
+        }
+        await this.ingredients.updateOne({ _id: inputIngredient }, { $set: updateFields });
+        return {};
+    }
 
     // async parseFromLink({ link }: { link: string }): Promise<{ recipeData: any } | { error: string }> {
         
@@ -263,6 +439,11 @@ export default class RecipeConcept {
      *
      */
 
+    /**
+     * _findRecipeByIngredient(ingredients: List<String>): (recipes: List<Recipe>)
+     *
+     * **effects** returns all the `Recipes` that have these `ingredients` (which are the food names), where the initial recipes are the ones that have the most ingredients in these `ingredients`
+     */
     async _findRecipeByIngredient({ ingredients }: { ingredients: string[] }): Promise<{ recipes: Recipe[] } | { error: string }> {
         if (!ingredients || ingredients.length === 0) {
             return { error: "Ingredients list cannot be empty." };
@@ -290,6 +471,11 @@ export default class RecipeConcept {
         return { recipes: sortedRecipeIds };
     }
 
+    /**
+     * _search(query: String): (recipes: List<Recipe>)
+     *
+     * **effects** returns all the `Recipes` that have this `query` in this `title`
+     */
     async _search({ query }: { query: string }): Promise<{ recipes: Recipe[] } | { error: string }> {
         if (!query || query.trim().length === 0) {
             return { error: "Query shouldn't be empty" };
@@ -308,6 +494,11 @@ export default class RecipeConcept {
         return { recipes: recipeIds };
     }
 
+    /**
+     * _findRecipeByIngredientWithinRecipes(ingredients: List<String>, recipes: List<Recipe>): (newRecipes: List<Recipe>)
+     *
+     * **effects** returns all the `Recipes` in these `recipes` that have these `ingredients` (which are the food names), where the initial recipes are the ones that have the most ingredients in these `ingredients`
+     */
     async _findRecipeByIngredientWithinRecipes({ ingredients, recipes }: { ingredients: string[], recipes: Recipe[] }): Promise<{ recipes: Recipe[] } | { error: string }> {
         if (!ingredients || ingredients.length === 0) {
             return { error: "Ingredients list cannot be empty." };
@@ -342,6 +533,11 @@ export default class RecipeConcept {
         return { recipes: sortedRecipeIds };
     }
 
+    /**
+     * _searchWithinRecipes(query: String, recipes: List<Recipe>): (newRecipes: List<Recipe>)
+     *
+     * **effects** returns all the `Recipes` in these `recipes` that have this `query` in this `title`
+     */
     async _searchWithinRecipes({ query, recipes }: { query: string, recipes: Recipe[] }): Promise<{ recipes: Recipe[] } | { error: string }> {
         if (!query || query.trim().length === 0) {
             return { error: "Query shouldn't be empty" };
@@ -365,6 +561,11 @@ export default class RecipeConcept {
         return { recipes: recipeIds };
     }
 
+    /**
+     * _filterIngredientAndSearch(query: String, ingredients: List<String>): (recipes: List<Recipe>)
+     *
+     * **effects** returns all the `Recipes` that have this `query` in this `title` and these `ingredients`, where the initial recipes are the ones that have the most ingredients in these `ingredients`
+     */
     async _filterIngredientAndSearch({ query, ingredients }: { query: string, ingredients: string[] }): Promise<{ recipes: Recipe[] } | { error: string }> {
         if (!query || query.trim().length === 0) {
             return { error: "Query cannot be empty." };
@@ -400,6 +601,11 @@ export default class RecipeConcept {
         return { recipes: sortedIds };
     }
 
+    /**
+     * _filterIngredientAndSearchWithinRecipes(recipes: List<Recipe>, query: String, ingredients: List<String>): (newRecipes: List<Recipe>)
+     *
+     * **effects** returns all the `Recipes` in these `recipes` that have this `query` in this `title` and these `ingredients`, where the initial recipes are the ones that have the most ingredients in these `ingredients`
+     */
     async _filterIngredientAndSearchWithinRecipes({
         recipes,
         query,
@@ -448,6 +654,13 @@ export default class RecipeConcept {
         return { recipes: sortedIds };
     }
 
+    /**
+     * _getRecipe(owner: User, title: String): (recipe: Recipe)
+     *
+     * **requires** this `owner` and this `title` exists in the set of `Recipes`
+     *
+     * **effects** returns the `Recipe` associated with this `owner` and this `title`
+     */
     async _getRecipe({ owner, title }: { owner: User, title: string }): Promise<{ recipe: RecipeDoc } | { error: string }> {
         if (!owner) {
             return { error: "Owner ID is required." };
@@ -465,6 +678,13 @@ export default class RecipeConcept {
         return { recipe };
     }
 
+    /**
+     * _getAllRecipes(owner: User): (recipes: List<Recipe>)
+     *
+     * **requires** this `owner` exists in the set of `Recipes`
+     *
+     * **effects** returns all the `Recipe`s associated with this `owner`
+     */
     async _getAllRecipes({ owner }: { owner: User }): Promise<{ recipes: RecipeDoc[] } | { error: string }> {
         if (!owner) {
             return { error: "Owner ID is required." };
@@ -481,19 +701,63 @@ export default class RecipeConcept {
         }
     }
 
-    //TODO:
     // _getIngredients()
-    // async _getIngredients({}: Empty): Promise<{ ingredients: IngredientDoc[] } | { error: string }> {
-    //     try {
-    //         const ingredients: IngredientDoc[] = await this.ingredients
-    //             .find({})
-    //             .toArray();
-    //         return { ingredients };
-    //     } catch (err: any) {
-    //         return { error: `Failed to fetch ingredients: ${err.message}` };
-    //     }
-    // }
+    /**
+     * _getIngredients(): (ingredients: List<Ingredient>)
+     *
+     * **effects** returns all the `Ingredient`s in the set of `Ingredient`s
+     */
+    async _getIngredients({}: Empty): Promise<{ ingredients: IngredientDoc[] } | { error: string }> {
+        try {
+            const ingredients: IngredientDoc[] = await this.ingredients
+                .find({})
+                .toArray();
+            return { ingredients };
+        } catch (err: any) {
+            return { error: `Failed to fetch ingredients: ${err.message}` };
+        }
+    }
 
     // _getIngredientsByName()
+    /**
+     * _getIngredientsByName(name: String): (ingredients: List<Ingredient>)
+     *
+     * **requires** this `name` to exists in the set of `Ingredient`s
+     *
+     * **effects** returns all the `Ingredient`s that have this `name`
+     */
+    async _getIngredientsByName({ name }: { name: string }): Promise<{ ingredients: IngredientDoc[] } | { error: string }> {
+        if (!name || name.trim().length === 0) {
+            return { error: "Ingredient name cannot be empty." };
+        }
+        try {
+            const ingredients: IngredientDoc[] = await this.ingredients
+                .find({ name: { $regex: name, $options: "i" } })
+                .toArray();
+            return { ingredients };
+        } catch (err: any) {
+            return { error: `Failed to fetch ingredients by name: ${err.message}` };
+        }
+
+    }
+
     // _scaleIngredients()
+    /**
+     * _scaleIngredients(inputIngredients: List<Ingredient>, scale: number): (ingredients: List<Ingredient>)
+     *
+     * **requires** this `scale` is a positive number
+     *
+     * **effects** creates an ingredients for each ingredient in this `inputIngredients` (without adding to set of `Ingredients`) with `amount = amount * scale`, and returns the list of those ingredients.
+     */
+    async _scaleIngredients({ recipe, scaleFactor }: { recipe: Recipe, scaleFactor: number }): Promise<{ ingredients: IngredientDoc[] } | { error: string }> {
+        const existing = await this.recipes.findOne({ _id: recipe });
+        if (!existing) {
+            return { error: "Recipe not found" };
+        }
+        const scaledIngredients: IngredientDoc[] = existing.ingredients.map((ingred) => ({
+            ...ingred,
+            quantity: ingred.quantity * scaleFactor,
+        }));
+        return { ingredients: scaledIngredients };
+    }
 }

@@ -65,7 +65,7 @@
   * `deleteIngredient(ingredient: Ingredient)`
 	* **requires** this `ingredient` exists in the set of `Ingredient`s
 	* **effects** removes this `ingredient` from the set of `Ingredient`s
-  * `editIngredient(inputIngredient: Ingredient, newName?: String, newAmount?: number, newQuantity?: String): (ingredient: Ingredient)`
+  * `editIngredient(inputIngredient: Ingredient, newName?: String, newQuantity?: number, newUnit?: String): (ingredient: Ingredient)`
 	* **effects** modifies `inputIngredient` to have `newName`, `newAmount`, and `newUnit`, leaving omitted fields unmodified
 
 * **queries**
