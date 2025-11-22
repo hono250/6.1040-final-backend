@@ -1,4 +1,4 @@
-import { Collection, Db } from "npm:mongodb";
+import { Collection, Db } from "mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
 
@@ -12,19 +12,19 @@ type Recipe = ID;
 interface RecipeDoc {
     _id: Recipe;
     owner: User;
-    title: String,
+    title: string,
     ingredients: IngredientDoc[];
-    image?: String;
-    link?: String;
-    description: String;
+    image?: string;
+    link?: string;
+    description: string;
     isCopy: boolean;
 }
 
 interface IngredientDoc {
     _id: Ingredient,
     quantity: number;
-    name: String;
-    unit: String;
+    name: string;
+    unit: string;
 }
 
 
@@ -98,15 +98,20 @@ export default class RecipeConcept {
         const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
         if ("error" in existing) return { error: existing.error };
 
+        const ingredDoc = await this.ingredients.findOne({ _id: ingredient }); 
+        if (!ingredDoc) {
+            return { error: "Ingredient not found" };
+        }
+
         // check if ingredient already exists
-        const alreadyExists = existing.ingredients.some((ing) => ing._id === ingredient._id);
+        const alreadyExists = existing.ingredients.some((ing) => ing._id === ingredDoc._id);
         if (alreadyExists) {
             return {};
         }
 
         await this.recipes.updateOne(
             { _id: recipe },
-            { $push: { ingredients: ingredient } }
+            { $push: { ingredients: ingredDoc } }
         );
         return {};
     }
@@ -114,12 +119,18 @@ export default class RecipeConcept {
     async removeIngredientFromRecipe({ requestedBy, recipe, ingredient }: { requestedBy: User, recipe: Recipe, ingredient: Ingredient }): Promise<Empty | { error: string }> {
         const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
         if ("error" in existing) return { error: existing.error };
-        const ingredExists = existing.ingredients.some((ing) => ing._id === ingredient._id);
+
+        const ingredDoc = await this.ingredients.findOne({ _id: ingredient }); 
+        if (!ingredDoc) {
+            return { error: "Ingredient not found" };
+        }
+        
+        const ingredExists = existing.ingredients.some((ing) => ing._id === ingredDoc._id);
         if (!ingredExists) {
             return { error: "ingredient doesn't exist in this recipe!" };
         }
 
-        await this.recipes.updateOne({ _id: recipe }, { $pull: { ingredients: { _id: ingredient._id } } });
+        await this.recipes.updateOne({ _id: recipe }, { $pull: { ingredients: { _id: ingredDoc._id } } });
         return {};
     }
 
@@ -229,6 +240,18 @@ export default class RecipeConcept {
 
         return { recipe: newRecipe._id };
     }
+
+    //TODO:
+    // parseFromLink()
+    // parseIngredients()
+    // createIngredient()
+    // deleteIngredient()
+    // editIngredient()
+
+
+    // async parseFromLink({ link }: { link: string }): Promise<{ recipeData: any } | { error: string }> {
+        
+    // }
 
 
 
@@ -425,7 +448,7 @@ export default class RecipeConcept {
         return { recipes: sortedIds };
     }
 
-    async _getRecipe({ owner, title }: { owner: User, title: String }): Promise<{ recipe: RecipeDoc } | { error: string }> {
+    async _getRecipe({ owner, title }: { owner: User, title: string }): Promise<{ recipe: RecipeDoc } | { error: string }> {
         if (!owner) {
             return { error: "Owner ID is required." };
         }
@@ -457,4 +480,20 @@ export default class RecipeConcept {
             return { error: `Failed to fetch recipes: ${err.message}` };
         }
     }
+
+    //TODO:
+    // _getIngredients()
+    // async _getIngredients({}: Empty): Promise<{ ingredients: IngredientDoc[] } | { error: string }> {
+    //     try {
+    //         const ingredients: IngredientDoc[] = await this.ingredients
+    //             .find({})
+    //             .toArray();
+    //         return { ingredients };
+    //     } catch (err: any) {
+    //         return { error: `Failed to fetch ingredients: ${err.message}` };
+    //     }
+    // }
+
+    // _getIngredientsByName()
+    // _scaleIngredients()
 }

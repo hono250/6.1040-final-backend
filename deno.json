@@ -1,0 +1,28 @@
+{
+    "imports": {
+        "@concepts/": "./src/concepts/",
+        "@concepts": "./src/concepts/concepts.ts",
+        "@test-concepts": "./src/concepts/test_concepts.ts",
+        "@google/generative-ai": "npm:@google/generative-ai@^0.24.1",
+        "@utils/": "./src/utils/",
+        "@engine": "./src/engine/mod.ts",
+        "@syncs": "./src/syncs/syncs.ts",
+        "@std/dotenv/load": "jsr:@std/dotenv@^0.225.0/load",
+        "@std/uuid/unstable-v7": "jsr:@std/uuid@^1.0.0/unstable-v7",
+        "mongodb": "npm:mongodb@^6.3.0"
+    },
+    "tasks": {
+        "start": "deno run --allow-net --allow-write --allow-read --allow-sys --allow-env src/main.ts",
+        "import": "deno run --allow-read --allow-write --allow-env src/utils/generate_imports.ts",
+        "build": "deno run import",
+        "test": "deno test --allow-net --allow-read --allow-env --allow-sys"
+    },
+    "lint": {
+        "rules": {
+            "exclude": [
+                "no-import-prefix",
+                "no-unversioned-import"
+            ]
+        }
+    }
+}
