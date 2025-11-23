@@ -35,6 +35,8 @@ export const inclusions: Record<string, string> = {
   "/api/Recipe/_findRecipeByIngredient": "public - search recipes by ingredients",
   "/api/Recipe/_filterIngredientAndSearch": "public - search recipes by title and ingredients",
   "/api/Recipe/_scaleIngredients": "public - scale recipe ingredients for viewing",
+  "/api/Recipe/_getIngredients" : "public - list all ingredients for search autocomplete",
+  "/api/Recipe/_getIngredientsByName" : "public - search ingredients by name for"
 };
 
 /**
@@ -80,8 +82,12 @@ export const exclusions: Array<string> = [
   "/api/Recipe/_searchWithinRecipes",
   "/api/Recipe/_filterIngredientAndSearchWithinRecipes",
   "/api/Recipe/_getAllRecipes",
-  "/api/Recipe/_getIngredients",
-  "/api/Recipe/_getIngredientsByName",
+
+
+  // Recipe - private helper methods (not for external use)
+  "/api/Recipe/isValidLink",
+  "/api/Recipe/checkRecipeAndOwner",
+  "/api/Recipe/createIngredientHelper",
   
   // Collecting - all need authentication
   "/api/Collecting/create",
