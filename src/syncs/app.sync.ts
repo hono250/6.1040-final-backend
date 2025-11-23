@@ -14,7 +14,7 @@ import { User, Recipe, Collecting, Requesting } from "@concepts";
 export const LogoutRequest: Sync = ({ request, token }) => ({
   when: actions([
     Requesting.request,
-    { path: "User/logout", token },
+    { path: "/User/logout", token },
     { request }
   ]),
   then: actions([
@@ -24,7 +24,7 @@ export const LogoutRequest: Sync = ({ request, token }) => ({
 
 export const LogoutResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "User/logout" }, { request }],
+    [Requesting.request, { path: "/User/logout" }, { request }],
     [User.logout, {}, {}]
   ),
   then: actions([
@@ -34,7 +34,7 @@ export const LogoutResponse: Sync = ({ request }) => ({
 
 export const LogoutError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "User/logout" }, { request }],
+    [Requesting.request, { path: "/User/logout" }, { request }],
     [User.logout, {}, { error }]
   ),
   then: actions([
@@ -52,7 +52,7 @@ export const UpdateDisplayNameRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "User/updateDisplayName", token, displayName },
+    { path: "/User/updateDisplayName", token, displayName },
     { request }
   ]),
   where: async (frames) => {
@@ -66,7 +66,7 @@ export const UpdateDisplayNameRequest: Sync = ({
 
 export const UpdateDisplayNameResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "User/updateDisplayName" }, { request }],
+    [Requesting.request, { path: "/User/updateDisplayName" }, { request }],
     [User.updateDisplayName, {}, {}]
   ),
   then: actions([
@@ -76,7 +76,7 @@ export const UpdateDisplayNameResponse: Sync = ({ request }) => ({
 
 export const UpdateDisplayNameError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "User/updateDisplayName" }, { request }],
+    [Requesting.request, { path: "/User/updateDisplayName" }, { request }],
     [User.updateDisplayName, {}, { error }]
   ),
   then: actions([
@@ -94,7 +94,7 @@ export const UpdatePasswordRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "User/updatePassword", token, oldPassword, newPassword },
+    { path: "/User/updatePassword", token, oldPassword, newPassword },
     { request }
   ]),
   where: async (frames) => {
@@ -108,7 +108,7 @@ export const UpdatePasswordRequest: Sync = ({
 
 export const UpdatePasswordResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "User/updatePassword" }, { request }],
+    [Requesting.request, { path: "/User/updatePassword" }, { request }],
     [User.updatePassword, {}, {}]
   ),
   then: actions([
@@ -118,7 +118,7 @@ export const UpdatePasswordResponse: Sync = ({ request }) => ({
 
 export const UpdatePasswordError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "User/updatePassword" }, { request }],
+    [Requesting.request, { path: "/User/updatePassword" }, { request }],
     [User.updatePassword, {}, { error }]
   ),
   then: actions([
@@ -139,7 +139,7 @@ export const DeleteAccountRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "User/deleteAccount", token },
+    { path: "/User/deleteAccount", token },
     { request }
   ]),
   where: async (frames) => {
@@ -153,7 +153,7 @@ export const DeleteAccountRequest: Sync = ({
 
 export const DeleteAccountResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "User/deleteAccount" }, { request }],
+    [Requesting.request, { path: "/User/deleteAccount" }, { request }],
     [User.deleteUser, {}, {}]
   ),
   then: actions([
@@ -163,7 +163,7 @@ export const DeleteAccountResponse: Sync = ({ request }) => ({
 
 export const DeleteAccountError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "User/deleteAccount" }, { request }],
+    [Requesting.request, { path: "/User/deleteAccount" }, { request }],
     [User.deleteUser, {}, { error }]
   ),
   then: actions([
@@ -177,15 +177,15 @@ export const DeleteAccountError: Sync = ({ request, error }) => ({
 
 /**
  * Create Recipe (authenticated)
- * Request: POST /api/Recipe/createRecipe { token, title, link?, description?, image? }
+ * Request: POST /api/Recipe/createRecipe { token, title, link?, description? }
  * Response: { recipe }
  */
-export const CreateRecipeRequest: Sync = ({ 
-  request, token, title, link, description, image, userId 
+export const CreateRecipeWithLinkRequest: Sync = ({ 
+  request, token, title, link, userId 
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/createRecipe", token, title, link, description, image },
+    { path: "/Recipe/createRecipe", token, title, link },  // link must exist
     { request }
   ]),
   where: async (frames) => {
@@ -193,13 +193,30 @@ export const CreateRecipeRequest: Sync = ({
     return frames;
   },
   then: actions([
-    Recipe.createRecipe, { owner: userId, title, link, description }
+    Recipe.createRecipe, { owner: userId, title, link }
+  ]),
+});
+
+export const CreateRecipeWithDescriptionRequest: Sync = ({ 
+  request, token, title, description, userId 
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/Recipe/createRecipe", token, title, description },  // description must exist
+    { request }
+  ]),
+  where: async (frames) => {
+    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    return frames;
+  },
+  then: actions([
+    Recipe.createRecipe, { owner: userId, title, description }
   ]),
 });
 
 export const CreateRecipeResponse: Sync = ({ request, recipe }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/createRecipe" }, { request }],
+    [Requesting.request, { path: "/Recipe/createRecipe" }, { request }],
     [Recipe.createRecipe, {}, { recipe }]
   ),
   then: actions([
@@ -209,7 +226,7 @@ export const CreateRecipeResponse: Sync = ({ request, recipe }) => ({
 
 export const CreateRecipeError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/createRecipe" }, { request }],
+    [Requesting.request, { path: "/Recipe/createRecipe" }, { request }],
     [Recipe.createRecipe, {}, { error }]
   ),
   then: actions([
@@ -227,7 +244,7 @@ export const DeleteRecipeRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/deleteRecipe", token, recipe },
+    { path: "/Recipe/deleteRecipe", token, recipe },
     { request }
   ]),
   where: async (frames) => {
@@ -242,7 +259,7 @@ export const DeleteRecipeRequest: Sync = ({
 
 export const DeleteRecipeResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/deleteRecipe" }, { request }],
+    [Requesting.request, { path: "/Recipe/deleteRecipe" }, { request }],
     [Recipe.deleteRecipe, {}, {}]
   ),
   then: actions([
@@ -252,7 +269,7 @@ export const DeleteRecipeResponse: Sync = ({ request }) => ({
 
 export const DeleteRecipeError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/deleteRecipe" }, { request }],
+    [Requesting.request, { path: "/Recipe/deleteRecipe" }, { request }],
     [Recipe.deleteRecipe, {}, { error }]
   ),
   then: actions([
@@ -270,7 +287,7 @@ export const CopyRecipeRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/copyRecipe", token, recipe: originalRecipe },
+    { path: "/Recipe/copyRecipe", token, recipe: originalRecipe },
     { request }
   ]),
   where: async (frames) => {
@@ -284,7 +301,7 @@ export const CopyRecipeRequest: Sync = ({
 
 export const CopyRecipeResponse: Sync = ({ request, recipe }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/copyRecipe" }, { request }],
+    [Requesting.request, { path: "/Recipe/copyRecipe" }, { request }],
     [Recipe.copyRecipe, {}, { recipe }]
   ),
   then: actions([
@@ -294,7 +311,7 @@ export const CopyRecipeResponse: Sync = ({ request, recipe }) => ({
 
 export const CopyRecipeError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/copyRecipe" }, { request }],
+    [Requesting.request, { path: "/Recipe/copyRecipe" }, { request }],
     [Recipe.copyRecipe, {}, { error }]
   ),
   then: actions([
@@ -312,7 +329,7 @@ export const AddIngredientToRecipeRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/addIngredientToRecipe", token, recipe, ingredient },
+    { path: "/Recipe/addIngredientToRecipe", token, recipe, ingredient },
     { request }
   ]),
   where: async (frames) => {
@@ -326,7 +343,7 @@ export const AddIngredientToRecipeRequest: Sync = ({
 
 export const AddIngredientToRecipeResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/addIngredientToRecipe" }, { request }],
+    [Requesting.request, { path: "/Recipe/addIngredientToRecipe" }, { request }],
     [Recipe.addIngredientToRecipe, {}, {}]
   ),
   then: actions([
@@ -336,7 +353,7 @@ export const AddIngredientToRecipeResponse: Sync = ({ request }) => ({
 
 export const AddIngredientToRecipeError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/addIngredientToRecipe" }, { request }],
+    [Requesting.request, { path: "/Recipe/addIngredientToRecipe" }, { request }],
     [Recipe.addIngredientToRecipe, {}, { error }]
   ),
   then: actions([
@@ -354,7 +371,7 @@ export const RemoveIngredientFromRecipeRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/removeIngredientFromRecipe", token, recipe, ingredient },
+    { path: "/Recipe/removeIngredientFromRecipe", token, recipe, ingredient },
     { request }
   ]),
   where: async (frames) => {
@@ -368,7 +385,7 @@ export const RemoveIngredientFromRecipeRequest: Sync = ({
 
 export const RemoveIngredientFromRecipeResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/removeIngredientFromRecipe" }, { request }],
+    [Requesting.request, { path: "/Recipe/removeIngredientFromRecipe" }, { request }],
     [Recipe.removeIngredientFromRecipe, {}, {}]
   ),
   then: actions([
@@ -378,7 +395,7 @@ export const RemoveIngredientFromRecipeResponse: Sync = ({ request }) => ({
 
 export const RemoveIngredientFromRecipeError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/removeIngredientFromRecipe" }, { request }],
+    [Requesting.request, { path: "/Recipe/removeIngredientFromRecipe" }, { request }],
     [Recipe.removeIngredientFromRecipe, {}, { error }]
   ),
   then: actions([
@@ -396,7 +413,7 @@ export const SetRecipeLinkRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/setLink", token, recipe, link },
+    { path: "/Recipe/setLink", token, recipe, link },
     { request }
   ]),
   where: async (frames) => {
@@ -410,7 +427,7 @@ export const SetRecipeLinkRequest: Sync = ({
 
 export const SetRecipeLinkResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/setLink" }, { request }],
+    [Requesting.request, { path: "/Recipe/setLink" }, { request }],
     [Recipe.setLink, {}, {}]
   ),
   then: actions([
@@ -420,7 +437,7 @@ export const SetRecipeLinkResponse: Sync = ({ request }) => ({
 
 export const SetRecipeLinkError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/setLink" }, { request }],
+    [Requesting.request, { path: "/Recipe/setLink" }, { request }],
     [Recipe.setLink, {}, { error }]
   ),
   then: actions([
@@ -438,7 +455,7 @@ export const RemoveRecipeLinkRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/removeLink", token, recipe },
+    { path: "/Recipe/removeLink", token, recipe },
     { request }
   ]),
   where: async (frames) => {
@@ -452,7 +469,7 @@ export const RemoveRecipeLinkRequest: Sync = ({
 
 export const RemoveRecipeLinkResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/removeLink" }, { request }],
+    [Requesting.request, { path: "/Recipe/removeLink" }, { request }],
     [Recipe.removeLink, {}, {}]
   ),
   then: actions([
@@ -462,7 +479,7 @@ export const RemoveRecipeLinkResponse: Sync = ({ request }) => ({
 
 export const RemoveRecipeLinkError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/removeLink" }, { request }],
+    [Requesting.request, { path: "/Recipe/removeLink" }, { request }],
     [Recipe.removeLink, {}, { error }]
   ),
   then: actions([
@@ -480,7 +497,7 @@ export const SetRecipeDescriptionRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/setDescription", token, recipe, description },
+    { path: "/Recipe/setDescription", token, recipe, description },
     { request }
   ]),
   where: async (frames) => {
@@ -494,7 +511,7 @@ export const SetRecipeDescriptionRequest: Sync = ({
 
 export const SetRecipeDescriptionResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/setDescription" }, { request }],
+    [Requesting.request, { path: "/Recipe/setDescription" }, { request }],
     [Recipe.setDescription, {}, {}]
   ),
   then: actions([
@@ -504,7 +521,7 @@ export const SetRecipeDescriptionResponse: Sync = ({ request }) => ({
 
 export const SetRecipeDescriptionError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/setDescription" }, { request }],
+    [Requesting.request, { path: "/Recipe/setDescription" }, { request }],
     [Recipe.setDescription, {}, { error }]
   ),
   then: actions([
@@ -522,7 +539,7 @@ export const RemoveRecipeDescriptionRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/removeDescription", token, recipe },
+    { path: "/Recipe/removeDescription", token, recipe },
     { request }
   ]),
   where: async (frames) => {
@@ -536,7 +553,7 @@ export const RemoveRecipeDescriptionRequest: Sync = ({
 
 export const RemoveRecipeDescriptionResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/removeDescription" }, { request }],
+    [Requesting.request, { path: "/Recipe/removeDescription" }, { request }],
     [Recipe.removeDescription, {}, {}]
   ),
   then: actions([
@@ -546,7 +563,7 @@ export const RemoveRecipeDescriptionResponse: Sync = ({ request }) => ({
 
 export const RemoveRecipeDescriptionError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/removeDescription" }, { request }],
+    [Requesting.request, { path: "/Recipe/removeDescription" }, { request }],
     [Recipe.removeDescription, {}, { error }]
   ),
   then: actions([
@@ -564,7 +581,7 @@ export const SetRecipeImageRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/setImage", token, recipe, image },
+    { path: "/Recipe/setImage", token, recipe, image },
     { request }
   ]),
   where: async (frames) => {
@@ -578,7 +595,7 @@ export const SetRecipeImageRequest: Sync = ({
 
 export const SetRecipeImageResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/setImage" }, { request }],
+    [Requesting.request, { path: "/Recipe/setImage" }, { request }],
     [Recipe.setImage, {}, {}]
   ),
   then: actions([
@@ -588,7 +605,7 @@ export const SetRecipeImageResponse: Sync = ({ request }) => ({
 
 export const SetRecipeImageError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/setImage" }, { request }],
+    [Requesting.request, { path: "/Recipe/setImage" }, { request }],
     [Recipe.setImage, {}, { error }]
   ),
   then: actions([
@@ -606,7 +623,7 @@ export const DeleteRecipeImageRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/deleteImage", token, recipe },
+    { path: "/Recipe/deleteImage", token, recipe },
     { request }
   ]),
   where: async (frames) => {
@@ -620,7 +637,7 @@ export const DeleteRecipeImageRequest: Sync = ({
 
 export const DeleteRecipeImageResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/deleteImage" }, { request }],
+    [Requesting.request, { path: "/Recipe/deleteImage" }, { request }],
     [Recipe.deleteImage, {}, {}]
   ),
   then: actions([
@@ -630,7 +647,7 @@ export const DeleteRecipeImageResponse: Sync = ({ request }) => ({
 
 export const DeleteRecipeImageError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/deleteImage" }, { request }],
+    [Requesting.request, { path: "/Recipe/deleteImage" }, { request }],
     [Recipe.deleteImage, {}, { error }]
   ),
   then: actions([
@@ -648,7 +665,7 @@ export const ParseIngredientsRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/parseIngredients", token, recipe, ingredientsText },
+    { path: "/Recipe/parseIngredients", token, recipe, ingredientsText },
     { request }
   ]),
   where: async (frames) => {
@@ -662,7 +679,7 @@ export const ParseIngredientsRequest: Sync = ({
 
 export const ParseIngredientsResponse: Sync = ({ request, ingredients }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/parseIngredients" }, { request }],
+    [Requesting.request, { path: "/Recipe/parseIngredients" }, { request }],
     [Recipe.parseIngredients, {}, { ingredients }]
   ),
   then: actions([
@@ -672,7 +689,7 @@ export const ParseIngredientsResponse: Sync = ({ request, ingredients }) => ({
 
 export const ParseIngredientsError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/parseIngredients" }, { request }],
+    [Requesting.request, { path: "/Recipe/parseIngredients" }, { request }],
     [Recipe.parseIngredients, {}, { error }]
   ),
   then: actions([
@@ -690,7 +707,7 @@ export const CreateIngredientRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/createIngredient", token, name, quantity, unit },
+    { path: "/Recipe/createIngredient", token, name, quantity, unit },
     { request }
   ]),
   where: async (frames) => {
@@ -704,7 +721,7 @@ export const CreateIngredientRequest: Sync = ({
 
 export const CreateIngredientResponse: Sync = ({ request, ingredient }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/createIngredient" }, { request }],
+    [Requesting.request, { path: "/Recipe/createIngredient" }, { request }],
     [Recipe.createIngredient, {}, { ingredient }]
   ),
   then: actions([
@@ -714,7 +731,7 @@ export const CreateIngredientResponse: Sync = ({ request, ingredient }) => ({
 
 export const CreateIngredientError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/createIngredient" }, { request }],
+    [Requesting.request, { path: "/Recipe/createIngredient" }, { request }],
     [Recipe.createIngredient, {}, { error }]
   ),
   then: actions([
@@ -732,7 +749,7 @@ export const DeleteIngredientRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/deleteIngredient", token, ingredient },
+    { path: "/Recipe/deleteIngredient", token, ingredient },
     { request }
   ]),
   where: async (frames) => {
@@ -746,7 +763,7 @@ export const DeleteIngredientRequest: Sync = ({
 
 export const DeleteIngredientResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/deleteIngredient" }, { request }],
+    [Requesting.request, { path: "/Recipe/deleteIngredient" }, { request }],
     [Recipe.deleteIngredient, {}, {}]
   ),
   then: actions([
@@ -756,7 +773,7 @@ export const DeleteIngredientResponse: Sync = ({ request }) => ({
 
 export const DeleteIngredientError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/deleteIngredient" }, { request }],
+    [Requesting.request, { path: "/Recipe/deleteIngredient" }, { request }],
     [Recipe.deleteIngredient, {}, { error }]
   ),
   then: actions([
@@ -774,7 +791,7 @@ export const EditIngredientRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/editIngredient", token, inputIngredient, newName, newQuantity, newUnit },
+    { path: "/Recipe/editIngredient", token, inputIngredient, newName, newQuantity, newUnit },
     { request }
   ]),
   where: async (frames) => {
@@ -788,7 +805,7 @@ export const EditIngredientRequest: Sync = ({
 
 export const EditIngredientResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/editIngredient" }, { request }],
+    [Requesting.request, { path: "/Recipe/editIngredient" }, { request }],
     [Recipe.editIngredient, {}, {}]
   ),
   then: actions([
@@ -798,7 +815,7 @@ export const EditIngredientResponse: Sync = ({ request }) => ({
 
 export const EditIngredientError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Recipe/editIngredient" }, { request }],
+    [Requesting.request, { path: "/Recipe/editIngredient" }, { request }],
     [Recipe.editIngredient, {}, { error }]
   ),
   then: actions([
@@ -816,7 +833,7 @@ export const GetAllMyRecipesRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/getAllMyRecipes", token },
+    { path: "/Recipe/getAllMyRecipes", token },
     { request }
   ]),
   where: async (frames) => {
@@ -836,17 +853,12 @@ export const GetAllMyRecipesRequest: Sync = ({
  * Request: POST /api/Recipe/viewRecipe { token, owner, title }
  * Response: { recipes, collectionsWithStatus }
  */
-/**
- * View Recipe (authenticated - includes collection status)
- * Request: POST /api/Recipe/viewRecipe { token, owner, title }
- * Response: { recipes, collectionsWithStatus }
- */
 export const ViewRecipeAuthenticatedRequest: Sync = ({ 
   request, token, owner, title, userId, recipes, collectionsWithStatus 
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/viewRecipe", token, owner, title },
+    { path: "/Recipe/viewRecipe", token, owner, title },
     { request }
   ]),
   where: async (frames) => {
@@ -900,7 +912,7 @@ export const CreateCollectionRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Collecting/create", token, name },
+    { path: "/Collecting/create", token, name },
     { request }
   ]),
   where: async (frames) => {
@@ -914,7 +926,7 @@ export const CreateCollectionRequest: Sync = ({
 
 export const CreateCollectionResponse: Sync = ({ request, collection }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/create" }, { request }],
+    [Requesting.request, { path: "/Collecting/create" }, { request }],
     [Collecting.create, {}, { collection }]
   ),
   then: actions([
@@ -924,7 +936,7 @@ export const CreateCollectionResponse: Sync = ({ request, collection }) => ({
 
 export const CreateCollectionError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/create" }, { request }],
+    [Requesting.request, { path: "/Collecting/create" }, { request }],
     [Collecting.create, {}, { error }]
   ),
   then: actions([
@@ -942,7 +954,7 @@ export const DeleteCollectionRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Collecting/delete", token, collection },
+    { path: "/Collecting/delete", token, collection },
     { request }
   ]),
   where: async (frames) => {
@@ -956,7 +968,7 @@ export const DeleteCollectionRequest: Sync = ({
 
 export const DeleteCollectionResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/delete" }, { request }],
+    [Requesting.request, { path: "/Collecting/delete" }, { request }],
     [Collecting.delete, {}, {}]
   ),
   then: actions([
@@ -966,7 +978,7 @@ export const DeleteCollectionResponse: Sync = ({ request }) => ({
 
 export const DeleteCollectionError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/delete" }, { request }],
+    [Requesting.request, { path: "/Collecting/delete" }, { request }],
     [Collecting.delete, {}, { error }]
   ),
   then: actions([
@@ -984,7 +996,7 @@ export const RenameCollectionRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Collecting/rename", token, collection, newName },
+    { path: "/Collecting/rename", token, collection, newName },
     { request }
   ]),
   where: async (frames) => {
@@ -998,7 +1010,7 @@ export const RenameCollectionRequest: Sync = ({
 
 export const RenameCollectionResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/rename" }, { request }],
+    [Requesting.request, { path: "/Collecting/rename" }, { request }],
     [Collecting.rename, {}, {}]
   ),
   then: actions([
@@ -1008,7 +1020,7 @@ export const RenameCollectionResponse: Sync = ({ request }) => ({
 
 export const RenameCollectionError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/rename" }, { request }],
+    [Requesting.request, { path: "/Collecting/rename" }, { request }],
     [Collecting.rename, {}, { error }]
   ),
   then: actions([
@@ -1026,7 +1038,7 @@ export const GetMyCollectionsRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Collecting/getMyCollections", token },
+    { path: "/Collecting/getMyCollections", token },
     { request }
   ]),
   where: async (frames) => {
@@ -1049,15 +1061,27 @@ export const ViewCollectionRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Collecting/viewCollection", token, collection },
+    { path: "/Collecting/viewCollection", token, collection },
     { request }
   ]),
   where: async (frames) => {
+    const originalFrame = frames[0];
     frames = await frames.query(User._getSessionUser, { token }, { userId });
-    frames = await frames.query(Collecting._getItems, { collection, requestingUser: userId }, { items });
-    frames = await frames.query(Collecting._getMembers, { collection }, { members });
-    return frames;
-  },
+
+    // Collection items
+    const itemsFrames = await frames.query(Collecting._getItems, { collection, requestingUser: userId }, { items });
+
+    //collection members
+    const membersFrames = await frames.query(Collecting._getMembers, { collection }, { members });
+    
+    // Combine results into single frame
+    return new Frames({
+        ...originalFrame,
+        [userId]: frames[0][userId],
+        [items]: itemsFrames[0][items],
+        [members]: membersFrames[0][members]
+    });
+    },
   then: actions([
     Requesting.respond, { request, items, members }
   ]),
@@ -1073,7 +1097,7 @@ export const AddItemToCollectionRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Collecting/addItem", token, collection, item },
+    { path: "/Collecting/addItem", token, collection, item },
     { request }
   ]),
   where: async (frames) => {
@@ -1087,7 +1111,7 @@ export const AddItemToCollectionRequest: Sync = ({
 
 export const AddItemToCollectionResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/addItem" }, { request }],
+    [Requesting.request, { path: "/Collecting/addItem" }, { request }],
     [Collecting.addItem, {}, {}]
   ),
   then: actions([
@@ -1097,7 +1121,7 @@ export const AddItemToCollectionResponse: Sync = ({ request }) => ({
 
 export const AddItemToCollectionError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/addItem" }, { request }],
+    [Requesting.request, { path: "/Collecting/addItem" }, { request }],
     [Collecting.addItem, {}, { error }]
   ),
   then: actions([
@@ -1115,7 +1139,7 @@ export const RemoveItemFromCollectionRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Collecting/removeItem", token, collection, item },
+    { path: "/Collecting/removeItem", token, collection, item },
     { request }
   ]),
   where: async (frames) => {
@@ -1129,7 +1153,7 @@ export const RemoveItemFromCollectionRequest: Sync = ({
 
 export const RemoveItemFromCollectionResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/removeItem" }, { request }],
+    [Requesting.request, { path: "/Collecting/removeItem" }, { request }],
     [Collecting.removeItem, {}, {}]
   ),
   then: actions([
@@ -1139,7 +1163,7 @@ export const RemoveItemFromCollectionResponse: Sync = ({ request }) => ({
 
 export const RemoveItemFromCollectionError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/removeItem" }, { request }],
+    [Requesting.request, { path: "/Collecting/removeItem" }, { request }],
     [Collecting.removeItem, {}, { error }]
   ),
   then: actions([
@@ -1157,7 +1181,7 @@ export const AddMemberToCollectionRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Collecting/addMember", token, collection, email },
+    { path: "/Collecting/addMember", token, collection, email },
     { request }
   ]),
   where: async (frames) => {
@@ -1172,7 +1196,7 @@ export const AddMemberToCollectionRequest: Sync = ({
 
 export const AddMemberToCollectionResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/addMember" }, { request }],
+    [Requesting.request, { path: "/Collecting/addMember" }, { request }],
     [Collecting.addMember, {}, {}]
   ),
   then: actions([
@@ -1182,7 +1206,7 @@ export const AddMemberToCollectionResponse: Sync = ({ request }) => ({
 
 export const AddMemberToCollectionError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/addMember" }, { request }],
+    [Requesting.request, { path: "/Collecting/addMember" }, { request }],
     [Collecting.addMember, {}, { error }]
   ),
   then: actions([
@@ -1200,7 +1224,7 @@ export const RemoveMemberFromCollectionRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Collecting/removeMember", token, collection, user },
+    { path: "/Collecting/removeMember", token, collection, user },
     { request }
   ]),
   where: async (frames) => {
@@ -1214,7 +1238,7 @@ export const RemoveMemberFromCollectionRequest: Sync = ({
 
 export const RemoveMemberFromCollectionResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/removeMember" }, { request }],
+    [Requesting.request, { path: "/Collecting/removeMember" }, { request }],
     [Collecting.removeMember, {}, {}]
   ),
   then: actions([
@@ -1224,7 +1248,7 @@ export const RemoveMemberFromCollectionResponse: Sync = ({ request }) => ({
 
 export const RemoveMemberFromCollectionError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/removeMember" }, { request }],
+    [Requesting.request, { path: "/Collecting/removeMember" }, { request }],
     [Collecting.removeMember, {}, { error }]
   ),
   then: actions([
@@ -1242,7 +1266,7 @@ export const LeaveCollectionRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Collecting/leave", token, collection },
+    { path: "/Collecting/leave", token, collection },
     { request }
   ]),
   where: async (frames) => {
@@ -1256,7 +1280,7 @@ export const LeaveCollectionRequest: Sync = ({
 
 export const LeaveCollectionResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/leave" }, { request }],
+    [Requesting.request, { path: "/Collecting/leave" }, { request }],
     [Collecting.leave, {}, {}]
   ),
   then: actions([
@@ -1266,7 +1290,7 @@ export const LeaveCollectionResponse: Sync = ({ request }) => ({
 
 export const LeaveCollectionError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "Collecting/leave" }, { request }],
+    [Requesting.request, { path: "/Collecting/leave" }, { request }],
     [Collecting.leave, {}, { error }]
   ),
   then: actions([
@@ -1289,11 +1313,11 @@ export const LeaveCollectionError: Sync = ({ request, error }) => ({
  * Response: { recipes }
  */
 export const SearchMyCollectionsRequest: Sync = ({ 
-  request, token, ingredientNames, titleQuery, userId, collection, items, results 
+  request, token, ingredientNames, titleQuery, userId, collections, collection, items, results 
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/searchMyCollections", token, ingredientNames, titleQuery },
+    { path: "/Recipe/searchMyCollections", token, ingredientNames, titleQuery },
     { request }
   ]),
   where: async (frames) => {
@@ -1302,27 +1326,38 @@ export const SearchMyCollectionsRequest: Sync = ({
     // Authenticate
     frames = await frames.query(User._getSessionUser, { token }, { userId });
     
-    // Get all collections user is in
-    frames = await frames.query(Collecting._getCollections, { user: userId}, { collection });
+   // Get all collections user is in - returns [{ collections: [...] }]
+    frames = await frames.query(Collecting._getCollections, { user: userId}, { collections });
+
 
     // query returns frames where each frame might have the collection data
     // Collecting._getCollections returns Array<CollectionDoc[]>, so we need to extract
-    const collectionsArray = frames[0] as any; // access first frame
+    const collectionsResult = frames[0][collections] as any;
     
-    if (!collectionsArray || frames.length === 0) {
+    
+    if (!collectionsResult || !Array.isArray(collectionsResult) || collectionsResult.length === 0) {
       // User has no collections
       return new Frames({ ...originalFrame, [results]: [] });
     }
+
+    // Create frames - one per collection
+    const collectionFrames = collectionsResult.map((coll: any) => ({
+        ...originalFrame,
+        [userId]: frames[0][userId],
+        [collection]: coll._id
+    }));
     
-    // Get items from each collection (this creates multiple frames, one per collection)
+    frames = new Frames(...collectionFrames);
+
+    // Get items from each collection 
     frames = await frames.query(Collecting._getItems, { collection, requestingUser: userId }, { items });
-    
+
     // Collect all unique items across collections
     const allItems = new Set();
-    frames.forEach(frame => {
-      const itemsList = frame[items];
-      if (itemsList && Array.isArray(itemsList)) {
-        itemsList.forEach(item => allItems.add(item));
+    frames.forEach((frame:any) => {
+      const itemsResult = frame[items]; // this is { items: [...] } not [...]
+      if (itemsResult && Array.isArray(itemsResult)) {
+        itemsResult.forEach((item: any) => allItems.add(item));
       }
     });
     
@@ -1349,21 +1384,25 @@ export const SearchMyCollectionsRequest: Sync = ({
 });
 
 /**
- * Search Global Authenticated (includes awareness of user's collections)
+ * Search Global Authenticated (flags recipes in user's collections)
  * Request: POST /api/Recipe/searchGlobalAuthenticated { token, ingredientNames, titleQuery }
- * Response: { recipes }
+ * Response: { results } - each recipe has inMyCollections: boolean
  */
 export const SearchGlobalAuthenticatedRequest: Sync = ({ 
-  request, token, ingredientNames, titleQuery, userId, results 
+  request, token, ingredientNames, titleQuery, userId, results, collections, collection, items
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "Recipe/searchGlobalAuthenticated", token, ingredientNames, titleQuery },
+    { path: "/Recipe/searchGlobalAuthenticated", token, ingredientNames, titleQuery },
     { request }
   ]),
   where: async (frames) => {
+    const originalFrame = frames[0];
+    
     // Authenticate
     frames = await frames.query(User._getSessionUser, { token }, { userId });
+
+    const authenticatedUserId = frames[0][userId]; 
     
     // Search globally
     frames = await frames.query(
@@ -1372,7 +1411,54 @@ export const SearchGlobalAuthenticatedRequest: Sync = ({
       { recipes: results }
     );
     
-    return frames;
+    const globalResults = frames[0][results] as any[];
+    
+    if (!globalResults || globalResults.length === 0) {
+      return new Frames({ 
+        ...originalFrame,
+        [userId]: authenticatedUserId, // keep UserId 
+        [results]: [] 
+      });
+    }
+    
+    // Get all items in user's collections
+    const collectionsFrames = await new Frames({
+      ...originalFrame,
+      [userId]: authenticatedUserId
+    }).query(
+      Collecting._getCollections, 
+      { user: userId }, 
+      { collections }
+    );
+    
+    const collectionsArray = collectionsFrames[0][collections] as any;
+    const userRecipeIds = new Set();
+    
+    if (collectionsArray && Array.isArray(collectionsArray) && collectionsArray.length > 0) {
+      const collectionFrames = collectionsArray.map((coll: any) => ({
+        ...originalFrame,
+        [userId]: authenticatedUserId,  
+        [collection]: coll._id
+      }));
+      
+      let itemsFrames = new Frames(...collectionFrames);
+      itemsFrames = await itemsFrames.query(Collecting._getItems, { collection, requestingUser: userId }, { items });
+      
+      itemsFrames.forEach((frame: any) => {
+        const itemsList = frame[items];
+        if (itemsList && Array.isArray(itemsList)) {
+          itemsList.forEach((item: any) => userRecipeIds.add(item.toString()));
+        }
+      });
+    }
+
+    // Flag recipes that are in user's collections
+    const flaggedResults = globalResults.map((recipeId: any) => ({
+      _id: recipeId,
+      inMyCollections: userRecipeIds.has(recipeId.toString())
+    }));
+    
+    return new Frames({ ...originalFrame, [results]: flaggedResults });
   },
   then: actions([
     Requesting.respond, { request, results }
