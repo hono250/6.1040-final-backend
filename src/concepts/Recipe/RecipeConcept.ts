@@ -121,7 +121,7 @@ export default class RecipeConcept {
         const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
         if ("error" in existing) return { error: existing.error };
 
-        const ingredDoc = await this.ingredients.findOne({ _id: ingredient }); 
+        const ingredDoc = await this.ingredients.findOne({ _id: ingredient });
         if (!ingredDoc) {
             return { error: "Ingredient not found" };
         }
@@ -150,11 +150,11 @@ export default class RecipeConcept {
         const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
         if ("error" in existing) return { error: existing.error };
 
-        const ingredDoc = await this.ingredients.findOne({ _id: ingredient }); 
+        const ingredDoc = await this.ingredients.findOne({ _id: ingredient });
         if (!ingredDoc) {
             return { error: "Ingredient not found" };
         }
-        
+
         const ingredExists = existing.ingredients.some((ing) => ing._id === ingredDoc._id);
         if (!ingredExists) {
             return { error: "ingredient doesn't exist in this recipe!" };
@@ -329,12 +329,12 @@ export default class RecipeConcept {
 
     //TODO:
     // parseFromLink() (llm augmented)
-    
+
     // Ingredient Actions
 
     /**
      * Helper to create ingredients
-     * 
+     *
      * @param name ingredient name
      * @param quantity ingredient quantity
      * @param unit units of measurement for quantity
@@ -357,7 +357,7 @@ export default class RecipeConcept {
      *
      * **requires** this `recipe` has an owner who is this `requestedBy`
      *  ingredientsText must be line separated and in the format: "quantity,unit,name" for each line
-     *  
+     *
      * **effects** parses this `ingredientsText` into individual `Ingredient`s as part of this `recipe`'s `ingredients`
      */
     async parseIngredients({ requestedBy, recipe, ingredientsText }: { requestedBy: User, recipe: Recipe, ingredientsText: string }): Promise<{ ingredients: IngredientDoc[] } | { error: string }> {
@@ -393,7 +393,7 @@ export default class RecipeConcept {
         if (!name || name.trim() === "") {
             return { error: "Ingredient name cannot be empty." };
         }
-        
+
         const newIngred = await this.createIngredientHelper(name, quantity, unit);
         return { ingredient: newIngred };
     }
@@ -438,7 +438,7 @@ export default class RecipeConcept {
     }
 
     // async parseFromLink({ link }: { link: string }): Promise<{ recipeData: any } | { error: string }> {
-        
+
     // }
 
 
@@ -719,7 +719,7 @@ export default class RecipeConcept {
      *
      * **effects** returns all the `Ingredient`s in the set of `Ingredient`s
      */
-    async _getIngredients({}: Empty): Promise<{ ingredients: IngredientDoc[] } | { error: string }> {
+    async _getIngredients({ }: Empty): Promise<{ ingredients: IngredientDoc[] } | { error: string }> {
         try {
             const ingredients: IngredientDoc[] = await this.ingredients
                 .find({})
@@ -765,6 +765,10 @@ export default class RecipeConcept {
         const existing = await this.recipes.findOne({ _id: recipe });
         if (!existing) {
             return { error: "Recipe not found" };
+        }
+
+        if (scaleFactor <= 0) {
+            return { error: `Scale factor ${scaleFactor} should be a positive number` };
         }
         const scaledIngredients: IngredientDoc[] = existing.ingredients.map((ingred) => ({
             ...ingred,
