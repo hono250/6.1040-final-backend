@@ -1,6 +1,7 @@
 import { assertEquals, assertNotEquals } from "jsr:@std/assert";
 import { testDb } from "@utils/database.ts";
 import UserConcept from "./User.ts";
+import { ID } from "@utils/types.ts";
 
 Deno.test("User Concept - Registration", async () => {
     const [db, client] = await testDb();
@@ -13,8 +14,10 @@ Deno.test("User Concept - Registration", async () => {
             password: "password123",
             displayName: "Test User",
         });
-        assertNotEquals((result as any).userId, undefined);
-        assertNotEquals((result as any).token, undefined);
+        assertNotEquals("error" in result, true, "Registration should succeed");
+        const { userId, token } = result as { userId: ID; token: string };
+        assertNotEquals(userId, undefined);
+        assertNotEquals(token, undefined);
 
         // Fail: Duplicate email
         const failDuplicate = await userConcept.register({
@@ -22,7 +25,9 @@ Deno.test("User Concept - Registration", async () => {
             password: "password123",
             displayName: "Test User 2",
         });
-        assertEquals((failDuplicate as any).error, "User with this email already exists.");
+        assertEquals("error" in failDuplicate, true, "Should fail on duplicate email");
+        assertEquals((failDuplicate as { error: string }).error, "User with this email already exists.");
+
 
         // Fail: Invalid email
         const failEmail = await userConcept.register({
@@ -30,7 +35,8 @@ Deno.test("User Concept - Registration", async () => {
             password: "password123",
             displayName: "Test User",
         });
-        assertEquals((failEmail as any).error, "Invalid email format.");
+        assertEquals("error" in failEmail, true, "Should fail on invalid email");
+        assertEquals((failEmail as { error: string }).error, "Invalid email format.");
 
         // Fail: Short password
         const failPassword = await userConcept.register({
@@ -38,7 +44,8 @@ Deno.test("User Concept - Registration", async () => {
             password: "short",
             displayName: "Test User",
         });
-        assertEquals((failPassword as any).error, "Password must be at least 8 characters.");
+        assertEquals("error" in failPassword, true, "Should fail on short password");
+        assertEquals((failPassword as { error: string }).error, "Password must be at least 8 characters.");
     } finally {
         await client.close();
     }
@@ -60,26 +67,31 @@ Deno.test("User Concept - Login and Authentication", async () => {
             email: "login@example.com",
             password: "password123",
         });
-        assertNotEquals((loginResult as any).token, undefined);
-        const token = (loginResult as any).token;
+        assertNotEquals("error" in loginResult, true, "Login should succeed");
+        const { token } = loginResult as { token: string };
+        assertNotEquals(token, undefined);
 
         // Authenticate Success
         const authResult = await userConcept.authenticate({ token });
-        assertNotEquals((authResult as any).userId, undefined);
+        assertNotEquals("error" in authResult, true, "Authentication should succeed");
+        const { userId } = authResult as { userId: ID };
+        assertNotEquals(userId, undefined)
 
         // Login Fail: Wrong password
         const failPass = await userConcept.login({
             email: "login@example.com",
             password: "wrongpassword",
         });
-        assertEquals((failPass as any).error, "Invalid email or password.");
+        assertEquals("error" in failPass, true, "Should fail on wrong password");
+        assertEquals((failPass as { error: string }).error, "Invalid email or password.");
 
         // Login Fail: Wrong email
         const failEmail = await userConcept.login({
             email: "wrong@example.com",
             password: "password123",
         });
-        assertEquals((failEmail as any).error, "Invalid email or password.");
+        assertEquals("error" in failEmail, true, "Should fail on wrong email");
+        assertEquals((failEmail as { error: string }).error, "Invalid email or password.");
     } finally {
         await client.close();
     }
@@ -99,8 +111,10 @@ Deno.test("User Concept - Profile Updates", async () => {
 
         // Update Display Name
         await userConcept.updateDisplayName({ user: userId, displayName: "New Name" });
-        const user = await userConcept._getUser({ userId });
-        assertEquals(user?.displayName, "New Name");
+        const [userResult] = await userConcept._getUser({ userId });
+        assertNotEquals("error" in userResult, true, "Should get user successfully");
+        const { user } = userResult as { user: { displayName: string } };
+        assertEquals(user.displayName, "New Name");
 
         // Update Password
         await userConcept.updatePassword({
@@ -114,14 +128,17 @@ Deno.test("User Concept - Profile Updates", async () => {
             email: "update@example.com",
             password: "newpassword123",
         });
-        assertNotEquals((loginNew as any).token, undefined);
+        assertNotEquals("error" in loginNew, true, "Login with new password should succeed");
+        const { token: newToken } = loginNew as { token: string };
+        assertNotEquals(newToken, undefined);
 
         // Verify old password fails
         const loginOld = await userConcept.login({
             email: "update@example.com",
             password: "password123",
         });
-        assertEquals((loginOld as any).error, "Invalid email or password.");
+        assertEquals("error" in loginOld, true, "Login with old password should fail");
+        assertEquals((loginOld as { error: string }).error, "Invalid email or password.");
     } finally {
         await client.close();
     }
@@ -137,18 +154,17 @@ Deno.test("User Concept - Deletion", async () => {
             password: "password123",
             displayName: "Delete Me",
         });
-        const userId = (reg as any).userId;
-        const token = (reg as any).token;
+        const { userId, token } = reg as { userId: ID; token: string };
 
         await userConcept.deleteUser({ user: userId });
 
         // Verify User gone
-        const user = await userConcept._getUser({ userId });
-        assertEquals(user, null);
+        const [userResult] = await userConcept._getUser({ userId });
+        assertEquals("error" in userResult, true, "User should not be found");
 
         // Verify Session gone
-        const sessionUser = await userConcept._getSessionUser({ token });
-        assertEquals(sessionUser, null);
+        const [sessionResult] = await userConcept._getSessionUser({ token });
+        assertEquals("error" in sessionResult, true, "Session should not be found");
     } finally {
         await client.close();
     }

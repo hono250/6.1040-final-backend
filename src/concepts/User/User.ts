@@ -1,7 +1,7 @@
 import { Collection, Db, ObjectId } from "npm:mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
-import * as bcrypt from "npm:bcryptjs";
+import bcrypt from "npm:bcryptjs";
 
 // Collection prefix to ensure namespace separation
 const PREFIX = "User" + ".";
@@ -269,8 +269,12 @@ export default class UserConcept {
      */
     async _getUser(
         { userId }: { userId: User },
-    ): Promise<UserDoc | null> {
-        return await this.users.findOne({ _id: userId });
+    ): Promise<Array<{ user: UserDoc } | { error: string }>> {
+        const user = await this.users.findOne({ _id: userId });
+        if (!user) {
+            return [{ error: "User not found." }];
+        }
+        return [{ user }];
     }
 
     /**
@@ -278,9 +282,12 @@ export default class UserConcept {
      */
     async _getUserByEmail(
         { email }: { email: string },
-    ): Promise<{ userId: User } | null> {
+    ): Promise<Array<{ userId: User } | { error: string }>> {
         const user = await this.users.findOne({ email });
-        return user ? { userId: user._id } : null;
+        if (!user) {
+            return [{ error: "User not found." }];
+        }
+        return [{ userId: user._id }];
     }
 
     /**
@@ -288,16 +295,16 @@ export default class UserConcept {
      */
     async _getSessionUser(
         { token }: { token: string },
-    ): Promise<{ userId: User } | null> {
+    ): Promise<Array<{ userId: User } | { error: string }>> {
         const session = await this.sessions.findOne({ token });
         if (!session) {
-            return null;
+            return [{ error: "Session not found." }];
         }
         if (session.expiresAt < new Date()) {
             // Optionally clean up expired session here or let authenticate handle it
-            return null;
+            return [{ error: "Session expired." }];
         }
-        return { userId: session.user };
+        return [{ userId: session.user }];
     }
 
     /**
