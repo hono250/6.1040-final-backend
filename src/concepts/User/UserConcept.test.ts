@@ -1,6 +1,6 @@
 import { assertEquals, assertNotEquals } from "jsr:@std/assert";
 import { testDb } from "@utils/database.ts";
-import UserConcept from "./User.ts";
+import UserConcept from "./UserConcept.ts";
 import { ID } from "@utils/types.ts";
 
 Deno.test("User Concept - Registration", async () => {
@@ -107,7 +107,7 @@ Deno.test("User Concept - Profile Updates", async () => {
             password: "password123",
             displayName: "Original Name",
         });
-        const userId = (reg as any).userId;
+        const { userId } = reg as { userId: ID; token: string };
 
         // Update Display Name
         await userConcept.updateDisplayName({ user: userId, displayName: "New Name" });
