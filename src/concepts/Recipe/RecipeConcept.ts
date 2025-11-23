@@ -425,7 +425,7 @@ export default class RecipeConcept {
         }
         const updateFields: Partial<IngredientDoc> = {};
         if (newName && newName.trim() !== "") {
-            updateFields.name = newName;
+            updateFields.name = newName.toLowerCase();
         }
         if (newQuantity !== undefined) {
             updateFields.quantity = newQuantity;
