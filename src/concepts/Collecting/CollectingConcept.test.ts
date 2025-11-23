@@ -515,9 +515,10 @@ Deno.test("Action: rename successfully changes name", async () => {
       "Owner should be able to rename.",
     );
 
-    const collections = await collectingConcept._getCollections({
+    const [collectionsResult] = await collectingConcept._getCollections({
       user: userAlice,
     });
+    const collections = collectionsResult.collections;
     assertEquals(collections.length, 1, "Should have 1 collection.");
     assertEquals(
       collections[0].name,
@@ -580,9 +581,10 @@ Deno.test("Action: delete successfully removes collection", async () => {
       "Owner should be able to delete.",
     );
 
-    const collections = await collectingConcept._getCollections({
+    const [collectionsResult] = await collectingConcept._getCollections({
       user: userAlice,
     });
+    const collections = collectionsResult.collections;
     assertEquals(
       collections.length,
       0,
@@ -710,9 +712,10 @@ Deno.test("Query: _getCollections returns all user's collections", async () => {
     });
 
     // Alice should see all 3 collections
-    const aliceCollections = await collectingConcept._getCollections({
+    const [aliceResult] = await collectingConcept._getCollections({
       user: userAlice,
     });
+    const aliceCollections = aliceResult.collections;
     assertEquals(
       aliceCollections.length,
       3,
@@ -720,9 +723,10 @@ Deno.test("Query: _getCollections returns all user's collections", async () => {
     );
 
     // Bob should see only his collection
-    const bobCollections = await collectingConcept._getCollections({
+    const [bobResult] = await collectingConcept._getCollections({
       user: userBob,
     });
+    const bobCollections = bobResult.collections;
     assertEquals(bobCollections.length, 1, "Bob should be in 1 collection.");
   } finally {
     await client.close();

@@ -307,8 +307,9 @@ export default class CollectingConcept {
    */
   async _getCollections(
     { user }: { user: User }
-  ): Promise<CollectionDoc[]> {
-    return await this.collections.find({ members: user }).toArray();
+  ): Promise<Array<{ collections: CollectionDoc[] }>> {
+    const collections = await this.collections.find({ members: user }).toArray();
+    return [{ collections }];
   }
 
   /**
