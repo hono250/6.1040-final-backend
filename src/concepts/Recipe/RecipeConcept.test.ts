@@ -70,7 +70,6 @@ Deno.test("Principle: a user adds a recipe with the name of the dish, the ingred
 
     await t.step("3. view the recipe", async () => {
         const [result] = await concept._getRecipe({ owner: aliceUser, title: "Spaghetti Carbonara" });
-
         if ("error" in result) throw new Error(result.error);
 
         const recipe = result.recipes[0];
@@ -478,4 +477,172 @@ Deno.test("Queries: Search, Filter, and Metadata", async (t) => {
     });
 
     await client.close();
+});
+
+Deno.test("Actions: remaining methods (removeIngredient, link/description/image/copy/parse/edit/delete ingredient, setRecipeCopy)", async (t) => {
+    const [db, client] = await testDb();
+    const concept = new RecipeConcept(db);
+    const owner = "user_owner_remaining" as ID;
+    const other = "user_other_remaining" as ID;
+
+    // Shared IDs for steps
+    let recipeId: ID;
+    let parsleyId: ID;
+    let newRecipeId: ID;
+    let delId: ID;
+    let editId: ID;
+
+    await t.step("setup: create recipe and ingredient", async () => {
+        const createR = await concept.createRecipe({ owner, title: "Remaining Actions Dish", description: "initial desc" });
+        if ("error" in createR) throw new Error(createR.error);
+        recipeId = createR.recipe;
+
+        const ingrRes = await concept.createIngredient({ name: "Parsley", quantity: 10, unit: "g" });
+        if ("error" in ingrRes) throw new Error(ingrRes.error);
+        parsleyId = ingrRes.ingredient._id;
+    });
+
+    await t.step("add ingredient then verify present", async () => {
+        await concept.addIngredientToRecipe({ requestedBy: owner, recipe: recipeId, ingredient: parsleyId });
+        const [fetched] = await concept._getRecipe({ owner, title: "Remaining Actions Dish" });
+        if ("error" in fetched) throw new Error(fetched.error);
+        assertEquals(fetched.recipes[0].ingredients.length, 1);
+    });
+    
+    await t.step("addIngredientToRecipe: failure when already present", async () => {
+        const result = await concept.addIngredientToRecipe({ requestedBy: other, recipe: recipeId, ingredient: parsleyId });
+        if ("error" in result) throw new Error(result.error);
+    });
+    
+
+    await t.step("removeIngredientFromRecipe: success", async () => {
+        const remOk = await concept.removeIngredientFromRecipe({ requestedBy: owner, recipe: recipeId, ingredient: parsleyId });
+        if ("error" in remOk) throw new Error(remOk.error);
+        const [fetched] = await concept._getRecipe({ owner, title: "Remaining Actions Dish" });
+        if ("error" in fetched) throw new Error(fetched.error);
+        assertEquals(fetched.recipes[0].ingredients.length, 0);
+    });
+
+    await t.step("removeIngredientFromRecipe: failure when missing", async () => {
+        const remFail = await concept.removeIngredientFromRecipe({ requestedBy: owner, recipe: recipeId, ingredient: parsleyId });
+        if (!("error" in remFail)) throw new Error("Expected error removing non-existent ingredient");
+    });
+
+    
+    await t.step("add/remove ingredient: non-owner failures", async () => {
+        const addFail = await concept.addIngredientToRecipe({ requestedBy: other, recipe: recipeId, ingredient: parsleyId });
+        if (!("error" in addFail)) throw new Error("Expected error adding ingredient by non-owner");
+        const remFail2 = await concept.removeIngredientFromRecipe({ requestedBy: other, recipe: recipeId, ingredient: parsleyId });
+        if (!("error" in remFail2)) throw new Error("Expected error removing ingredient by non-owner");
+    });
+
+    await t.step("setLink & removeLink", async () => {
+        const setLinkOk = await concept.setLink({ requestedBy: owner, recipe: recipeId, link: "https://example.com/recipe" });
+        if ("error" in setLinkOk) throw new Error(setLinkOk.error);
+        const [fetched] = await concept._getRecipe({ owner, title: "Remaining Actions Dish" });
+        if ("error" in fetched) throw new Error(fetched.error);
+        assertEquals(fetched.recipes[0].link, "https://example.com/recipe");
+
+        const removeLinkOk = await concept.removeLink({ requestedBy: owner, recipe: recipeId });
+        if ("error" in removeLinkOk) throw new Error(removeLinkOk.error);
+        const [fetched2] = await concept._getRecipe({ owner, title: "Remaining Actions Dish" });
+        if ("error" in fetched2) throw new Error(fetched2.error);
+        assertEquals(fetched2.recipes[0].link, "");
+    });
+
+    await t.step("setDescription & removeDescription expectations", async () => {
+        const setDescOk = await concept.setDescription({ requestedBy: owner, recipe: recipeId, description: "updated desc" });
+        if ("error" in setDescOk) throw new Error(setDescOk.error);
+        const [fetched] = await concept._getRecipe({ owner, title: "Remaining Actions Dish" });
+        if ("error" in fetched) throw new Error(fetched.error);
+        assertEquals(fetched.recipes[0].description, "updated desc");
+
+        const removeDescFail = await concept.removeDescription({ requestedBy: owner, recipe: recipeId });
+        if (!("error" in removeDescFail)) throw new Error("Expected error removing description without link present");
+    });
+
+    await t.step("setImage & deleteImage", async () => {
+        const setImageOk = await concept.setImage({ requestedBy: owner, recipe: recipeId, image: "data:image/png;base64,AAA" });
+        if ("error" in setImageOk) throw new Error(setImageOk.error);
+        const [fetched] = await concept._getRecipe({ owner, title: "Remaining Actions Dish" });
+        if ("error" in fetched) throw new Error(fetched.error);
+        assertEquals(fetched.recipes[0].image, "data:image/png;base64,AAA");
+
+        const deleteImageOk = await concept.deleteImage({ requestedBy: owner, recipe: recipeId });
+        if ("error" in deleteImageOk) throw new Error(deleteImageOk.error);
+        const [fetched2] = await concept._getRecipe({ owner, title: "Remaining Actions Dish" });
+        if ("error" in fetched2) throw new Error(fetched2.error);
+        assertEquals(fetched2.recipes[0].image, "");
+    });
+
+    await t.step("setRecipeCopy & copyRecipe", async () => {
+        const setCopyOk = await concept.setRecipeCopy({ requestedBy: owner, recipe: recipeId, isCopy: true });
+        if ("error" in setCopyOk) throw new Error(setCopyOk.error);
+        const [fetched] = await concept._getRecipe({ owner, title: "Remaining Actions Dish" });
+        if ("error" in fetched) throw new Error(fetched.error);
+        assertEquals(fetched.recipes[0].isCopy, true);
+
+        const setCopyFalse = await concept.setRecipeCopy({ requestedBy: owner, recipe: recipeId, isCopy: false });
+        if ("error" in setCopyFalse) throw new Error(setCopyFalse.error);
+        const [falseCopy] = await concept._getRecipe({ owner, title: "Remaining Actions Dish" });
+        if ("error" in falseCopy) throw new Error(falseCopy.error);
+        assertEquals(falseCopy.recipes[0].isCopy, false);
+
+        const copyRes = await concept.copyRecipe({ requestedBy: other, recipe: recipeId });
+        if ("error" in copyRes) throw new Error(copyRes.error);
+        newRecipeId = copyRes.recipe;
+
+        const [origFetched] = await concept._getRecipe({ owner, title: "Remaining Actions Dish" });
+        if ("error" in origFetched) throw new Error(origFetched.error);
+        assertEquals(origFetched.recipes[0].isCopy, false);
+
+        const [newFetched] = await concept._getRecipe({ owner: other, title: "Remaining Actions Dish" });
+        if ("error" in newFetched) throw new Error(newFetched.error);
+        assertEquals(newFetched.recipes[0]._id, newRecipeId);
+        assertEquals(newFetched.recipes[0].isCopy, true);
+    });
+
+    await t.step("parseIngredients: valid and invalid inputs", async () => {
+        const parseOk = await concept.parseIngredients({
+            requestedBy: owner,
+            recipe: recipeId,
+            ingredientsText: "100,g,Flour\n50,g,Sugar"
+        });
+        if ("error" in parseOk) throw new Error(parseOk.error);
+        const [fetched] = await concept._getRecipe({ owner, title: "Remaining Actions Dish" });
+        if ("error" in fetched) throw new Error(fetched.error);
+        assertEquals(fetched.recipes[0].ingredients.length, 2);
+        const names = fetched.recipes[0].ingredients.map(i => i.name);
+        assertArrayIncludes(names, ["flour", "sugar"]);
+
+        const parseBad = await concept.parseIngredients({ requestedBy: owner, recipe: recipeId, ingredientsText: "badformatline" });
+        if (!("error" in parseBad)) throw new Error("Expected parseIngredients to error on invalid input");
+    });
+
+    await t.step("deleteIngredient: create/delete/double-delete", async () => {
+        const toDel = await concept.createIngredient({ name: "TempDel", quantity: 1, unit: "unit" });
+        if ("error" in toDel) throw new Error(toDel.error);
+        delId = toDel.ingredient._id;
+        const delOk2 = await concept.deleteIngredient({ ingredient: delId });
+        if ("error" in delOk2) throw new Error(delOk2.error);
+        const delAgain = await concept.deleteIngredient({ ingredient: delId });
+        if (!("error" in delAgain)) throw new Error("Expected error deleting non-existent ingredient");
+    });
+
+    await t.step("editIngredient: create, edit, verify", async () => {
+        const editCreate = await concept.createIngredient({ name: "EditMe", quantity: 2, unit: "pcs" });
+        if ("error" in editCreate) throw new Error(editCreate.error);
+        editId = editCreate.ingredient._id;
+        const editOk = await concept.editIngredient({ inputIngredient: editId, newName: "Edited", newQuantity: 5, newUnit: "kg" });
+        if ("error" in editOk) throw new Error(editOk.error);
+        const [allIngs] = await concept._getIngredients({});
+        if ("error" in allIngs) throw new Error(allIngs.error);
+        const edited = allIngs.ingredients.find(i => i._id === editId);
+        assertExists(edited);
+        assertEquals(edited?.name, "edited"); // should be lowercase
+    });
+
+    await t.step("teardown: close client", async () => {
+        await client.close();
+    });
 });

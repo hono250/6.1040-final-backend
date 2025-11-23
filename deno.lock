@@ -99,6 +99,7 @@
       "jsr:@std/dotenv@0.225",
       "jsr:@std/uuid@1",
       "npm:@google/generative-ai@~0.24.1",
+      "npm:bcryptjs@^2.4.3",
       "npm:mongodb@^6.3.0"
     ]
   }
