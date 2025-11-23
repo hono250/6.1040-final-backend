@@ -812,7 +812,7 @@ export const EditIngredientError: Sync = ({ request, error }) => ({
  * Response: { recipes }
  */
 export const GetAllMyRecipesRequest: Sync = ({ 
-  request, token, userId 
+  request, token, userId, recipes 
 }) => ({
   when: actions([
     Requesting.request,
@@ -821,40 +821,28 @@ export const GetAllMyRecipesRequest: Sync = ({
   ]),
   where: async (frames) => {
     frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(Recipe._getAllRecipes, { owner: userId }, { recipes });
     return frames;
   },
-  then: actions([
-    Recipe._getAllRecipes, { owner: userId }
-  ]),
-});
-
-export const GetAllMyRecipesResponse: Sync = ({ request, recipes }) => ({
-  when: actions(
-    [Requesting.request, { path: "Recipe/getAllMyRecipes" }, { request }],
-    [Recipe._getAllRecipes, {}, { recipes }]
-  ),
   then: actions([
     Requesting.respond, { request, recipes }
   ]),
 });
 
-export const GetAllMyRecipesError: Sync = ({ request, error }) => ({
-  when: actions(
-    [Requesting.request, { path: "Recipe/getAllMyRecipes" }, { request }],
-    [Recipe._getAllRecipes, {}, { error }]
-  ),
-  then: actions([
-    Requesting.respond, { request, error }
-  ]),
-});
+//response and error handling for GellAllRecipes happens in the request sync
 
 /**
  * View Recipe (authenticated - includes collection status)
  * Request: POST /api/Recipe/viewRecipe { token, owner, title }
  * Response: { recipes, collectionsWithStatus }
  */
+/**
+ * View Recipe (authenticated - includes collection status)
+ * Request: POST /api/Recipe/viewRecipe { token, owner, title }
+ * Response: { recipes, collectionsWithStatus }
+ */
 export const ViewRecipeAuthenticatedRequest: Sync = ({ 
-  request, token, owner, title, userId 
+  request, token, owner, title, userId, recipes, collectionsWithStatus 
 }) => ({
   when: actions([
     Requesting.request,
@@ -862,34 +850,30 @@ export const ViewRecipeAuthenticatedRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
-    return frames;
-  },
-  then: actions([
-    Recipe._getRecipe, { owner, title }
-  ]),
-});
-
-export const ViewRecipeAuthenticatedResponse: Sync = ({ 
-  request, userId, recipes, collectionsWithStatus 
-}) => ({
-  when: actions(
-    [Requesting.request, { path: "Recipe/viewRecipe" }, { request }],
-    [Recipe._getRecipe, {}, { recipes }]
-  ),
-  where: async (frames) => {
     const originalFrame = frames[0];
-    const recipesArray = frames[0][recipes] as any;
     
-    // Extract the recipe ID from the recipes array
-    if (!frames[0] || !recipesArray || !Array.isArray(recipesArray) || recipesArray.length === 0) {
+    // Authenticate
+    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    
+    // Get the recipe
+    frames = await frames.query(Recipe._getRecipe, { owner, title }, { recipes });
+    
+    // Check if query returned error
+    const recipesResult = frames[0][recipes] as any;
+    if (!recipesResult || (recipesResult.error)) {
+      return new Frames({ ...originalFrame, [recipes]: [], error: recipesResult?.error || "Recipe not found" });
+    }
+    
+    // Extract recipe ID
+    const recipeId = recipesResult[0]?._id;
+    if (!recipeId) {
       return new Frames({ ...originalFrame, [recipes]: [], [collectionsWithStatus]: [] });
     }
     
-    const recipe = recipesArray[0]._id;
+    // Get collections with item status
     frames = await frames.query(
       Collecting._getCollectionsWithItemStatus,
-      { user: userId, item: recipe },
+      { user: userId, item: recipeId },
       { collectionsWithStatus }
     );
     
@@ -900,15 +884,7 @@ export const ViewRecipeAuthenticatedResponse: Sync = ({
   ]),
 });
 
-export const ViewRecipeAuthenticatedError: Sync = ({ request, error }) => ({
-  when: actions(
-    [Requesting.request, { path: "Recipe/viewRecipe" }, { request }],
-    [Recipe._getRecipe, {}, { error }]
-  ),
-  then: actions([
-    Requesting.respond, { request, error }
-  ]),
-});
+// Responde and error handling for ViewRecipeAuthenticated handled in request sync
 
 // ============================================================================
 // COLLECTION MANAGEMENT
