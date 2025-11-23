@@ -456,9 +456,9 @@ export default class RecipeConcept {
      *
      * **effects** returns all the `Recipes` that have these `ingredients` (which are the food names), where the initial recipes are the ones that have the most ingredients in these `ingredients`
      */
-    async _findRecipeByIngredient({ ingredients }: { ingredients: string[] }): Promise<{ recipes: Recipe[] } | { error: string }> {
+    async _findRecipeByIngredient({ ingredients }: { ingredients: string[] }): Promise<Array<{ recipes: Recipe[] } | { error: string }>> {
         if (!ingredients || ingredients.length === 0) {
-            return { error: "Ingredients list cannot be empty." };
+            return [{ error: "Ingredients list cannot be empty." }];
         }
 
         const normalized = ingredients.map((i) => i.toLowerCase());
@@ -475,12 +475,12 @@ export default class RecipeConcept {
 
         // none found
         if (scored.length === 0) {
-            return { recipes: [] };
+            return [{ recipes: [] }];
         }
         scored.sort((a: { recipe: RecipeDoc; matchCount: number }, b: { recipe: RecipeDoc; matchCount: number }) => b.matchCount - a.matchCount);
         const sortedRecipeIds = scored.map((entry: { recipe: RecipeDoc; matchCount: number }) => entry.recipe._id);
 
-        return { recipes: sortedRecipeIds };
+        return [{ recipes: sortedRecipeIds }];
     }
 
     /**
@@ -488,9 +488,9 @@ export default class RecipeConcept {
      *
      * **effects** returns all the `Recipes` that have this `query` in this `title`
      */
-    async _search({ query }: { query: string }): Promise<{ recipes: Recipe[] } | { error: string }> {
+    async _search({ query }: { query: string }): Promise<Array<{ recipes: Recipe[] } | { error: string }>> {
         if (!query || query.trim().length === 0) {
-            return { error: "Query shouldn't be empty" };
+            return [{ error: "Query shouldn't be empty" }];
         }
 
         const normalized = query.toLowerCase();
@@ -503,7 +503,7 @@ export default class RecipeConcept {
 
         const recipeIds: Recipe[] = matchingRecipes.map((r) => r._id);
 
-        return { recipes: recipeIds };
+        return [{ recipes: recipeIds }];
     }
 
     /**
@@ -511,13 +511,13 @@ export default class RecipeConcept {
      *
      * **effects** returns all the `Recipes` in these `recipes` that have these `ingredients` (which are the food names), where the initial recipes are the ones that have the most ingredients in these `ingredients`
      */
-    async _findRecipeByIngredientWithinRecipes({ ingredients, recipes }: { ingredients: string[], recipes: Recipe[] }): Promise<{ recipes: Recipe[] } | { error: string }> {
+    async _findRecipeByIngredientWithinRecipes({ ingredients, recipes }: { ingredients: string[], recipes: Recipe[] }): Promise<Array<{ recipes: Recipe[] } | { error: string }>> {
         if (!ingredients || ingredients.length === 0) {
-            return { error: "Ingredients list cannot be empty." };
+            return [{ error: "Ingredients list cannot be empty." }];
         }
 
         if (!recipes || recipes.length === 0) {
-            return { recipes: [] }; // no recipes to filter
+            return [{ recipes: [] }];
         }
 
         const normalized = ingredients.map((i) => i.toLowerCase());
@@ -537,12 +537,12 @@ export default class RecipeConcept {
 
         // none found
         if (scored.length === 0) {
-            return { recipes: [] };
+            return [{ recipes: [] }];
         }
         scored.sort((a: { recipe: RecipeDoc; matchCount: number }, b: { recipe: RecipeDoc; matchCount: number }) => b.matchCount - a.matchCount);
         const sortedRecipeIds = scored.map((entry: { recipe: RecipeDoc; matchCount: number }) => entry.recipe._id);
 
-        return { recipes: sortedRecipeIds };
+        return [{ recipes: sortedRecipeIds }];
     }
 
     /**
@@ -550,13 +550,13 @@ export default class RecipeConcept {
      *
      * **effects** returns all the `Recipes` in these `recipes` that have this `query` in this `title`
      */
-    async _searchWithinRecipes({ query, recipes }: { query: string, recipes: Recipe[] }): Promise<{ recipes: Recipe[] } | { error: string }> {
+    async _searchWithinRecipes({ query, recipes }: { query: string, recipes: Recipe[] }): Promise<Array<{ recipes: Recipe[] } | { error: string }>> {
         if (!query || query.trim().length === 0) {
-            return { error: "Query shouldn't be empty" };
+            return [{ error: "Query shouldn't be empty" }];
         }
 
         if (!recipes || recipes.length === 0) {
-            return { recipes: [] }; // no recipes to filter
+            return [{ recipes: [] }]; // no recipes to filter
         }
 
         const normalized = query.toLowerCase();
@@ -570,7 +570,7 @@ export default class RecipeConcept {
 
         const recipeIds: Recipe[] = matchingRecipes.map((r) => r._id);
 
-        return { recipes: recipeIds };
+        return [{ recipes: recipeIds }];
     }
 
     /**
@@ -578,12 +578,12 @@ export default class RecipeConcept {
      *
      * **effects** returns all the `Recipes` that have this `query` in this `title` and these `ingredients`, where the initial recipes are the ones that have the most ingredients in these `ingredients`
      */
-    async _filterIngredientAndSearch({ query, ingredients }: { query: string, ingredients: string[] }): Promise<{ recipes: Recipe[] } | { error: string }> {
+    async _filterIngredientAndSearch({ query, ingredients }: { query: string, ingredients: string[] }): Promise<Array<{ recipes: Recipe[] } | { error: string }>> {
         if (!query || query.trim().length === 0) {
-            return { error: "Query cannot be empty." };
+            return [{ error: "Query cannot be empty." }];
         }
         if (!ingredients || ingredients.length === 0) {
-            return { error: "Ingredients list cannot be empty." };
+            return [{ error: "Ingredients list cannot be empty." }];
         }
 
         const normalizedQuery = query.toLowerCase();
@@ -610,7 +610,7 @@ export default class RecipeConcept {
 
         const sortedIds: Recipe[] = scored.map((entry) => entry.recipe._id);
 
-        return { recipes: sortedIds };
+        return [{ recipes: sortedIds }];
     }
 
     /**
@@ -626,15 +626,15 @@ export default class RecipeConcept {
         recipes: Recipe[];
         query: string;
         ingredients: string[];
-    }): Promise<{ recipes: Recipe[] } | { error: string }> {
+    }): Promise<Array<{ recipes: Recipe[] } | { error: string }>> {
         if (!query || query.trim().length === 0) {
-            return { error: "Query cannot be empty." };
+            return [{ error: "Query cannot be empty." }];
         }
         if (!ingredients || ingredients.length === 0) {
-            return { error: "Ingredients list cannot be empty." };
+            return [{ error: "Ingredients list cannot be empty." }];
         }
         if (!recipes || recipes.length === 0) {
-            return { recipes: [] }; // nothing to filter
+            return [{ recipes: [] }]; // nothing to filter
         }
 
         const normalizedQuery = query.toLowerCase();
@@ -663,7 +663,7 @@ export default class RecipeConcept {
 
         const sortedIds: Recipe[] = scored.map((entry) => entry.recipe._id);
 
-        return { recipes: sortedIds };
+        return [{ recipes: sortedIds }];
     }
 
     /**
@@ -673,21 +673,21 @@ export default class RecipeConcept {
      *
      * **effects** returns the `Recipe`s associated with this `owner` and this `title`
      */
-    async _getRecipe({ owner, title }: { owner: User, title: string }): Promise<{ recipes: RecipeDoc[] } | { error: string }> {
+    async _getRecipe({ owner, title }: { owner: User, title: string }): Promise<Array<{ recipes: RecipeDoc[] } | { error: string }>> {
         if (!owner) {
-            return { error: "Owner ID is required." };
+            return [{ error: "Owner ID is required." }];
         }
         if (!title || title.trim().length === 0) {
-            return { error: "Title cannot be empty." };
+            return [{ error: "Title cannot be empty." }];
         }
 
 
         const recipes = await this.recipes.find({ owner, title }).toArray();
         if (recipes.length === 0) {
-            return { error: `Recipe with title "${title}" for this owner not found.` };
+            return [{ error: `Recipe with title "${title}" for this owner not found.` }];
         }
 
-        return { recipes };
+        return [{ recipes }];
     }
 
     /**
@@ -697,9 +697,9 @@ export default class RecipeConcept {
      *
      * **effects** returns all the `Recipe`s associated with this `owner`
      */
-    async _getAllRecipes({ owner }: { owner: User }): Promise<{ recipes: RecipeDoc[] } | { error: string }> {
+    async _getAllRecipes({ owner }: { owner: User }): Promise<Array<{ recipes: RecipeDoc[] } | { error: string }>> {
         if (!owner) {
-            return { error: "Owner ID is required." };
+            return [{ error: "Owner ID is required." }];
         }
 
         try {
@@ -707,9 +707,9 @@ export default class RecipeConcept {
                 .find({ owner })
                 .toArray();
 
-            return { recipes };
+            return [{ recipes }];
         } catch (err: any) {
-            return { error: `Failed to fetch recipes: ${err.message}` };
+            return [{ error: `Failed to fetch recipes: ${err.message}` }];
         }
     }
 
@@ -719,14 +719,14 @@ export default class RecipeConcept {
      *
      * **effects** returns all the `Ingredient`s in the set of `Ingredient`s
      */
-    async _getIngredients({ }: Empty): Promise<{ ingredients: IngredientDoc[] } | { error: string }> {
+    async _getIngredients({ }: Empty): Promise<Array<{ ingredients: IngredientDoc[] } | { error: string }>> {
         try {
             const ingredients: IngredientDoc[] = await this.ingredients
                 .find({})
                 .toArray();
-            return { ingredients };
+            return [{ ingredients }];
         } catch (err: any) {
-            return { error: `Failed to fetch ingredients: ${err.message}` };
+            return [{ error: `Failed to fetch ingredients: ${err.message}` }];
         }
     }
 
@@ -738,17 +738,17 @@ export default class RecipeConcept {
      *
      * **effects** returns all the `Ingredient`s that have this `name`
      */
-    async _getIngredientsByName({ name }: { name: string }): Promise<{ ingredients: IngredientDoc[] } | { error: string }> {
+    async _getIngredientsByName({ name }: { name: string }): Promise<Array<{ ingredients: IngredientDoc[] } | { error: string }>> {
         if (!name || name.trim().length === 0) {
-            return { error: "Ingredient name cannot be empty." };
+            return [{ error: "Ingredient name cannot be empty." }];
         }
         try {
             const ingredients: IngredientDoc[] = await this.ingredients
                 .find({ name: { $regex: name, $options: "i" } })
                 .toArray();
-            return { ingredients };
+            return [{ ingredients }];
         } catch (err: any) {
-            return { error: `Failed to fetch ingredients by name: ${err.message}` };
+            return [{ error: `Failed to fetch ingredients by name: ${err.message}` }];
         }
 
     }
@@ -761,19 +761,19 @@ export default class RecipeConcept {
      *
      * **effects** creates an ingredients for each ingredient in this `inputIngredients` (without adding to set of `Ingredients`) with `amount = amount * scale`, and returns the list of those ingredients.
      */
-    async _scaleIngredients({ recipe, scaleFactor }: { recipe: Recipe, scaleFactor: number }): Promise<{ ingredients: IngredientDoc[] } | { error: string }> {
+    async _scaleIngredients({ recipe, scaleFactor }: { recipe: Recipe, scaleFactor: number }): Promise<Array<{ ingredients: IngredientDoc[] } | { error: string }>> {
         const existing = await this.recipes.findOne({ _id: recipe });
         if (!existing) {
-            return { error: "Recipe not found" };
+            return [{ error: "Recipe not found" }];
         }
 
         if (scaleFactor <= 0) {
-            return { error: `Scale factor ${scaleFactor} should be a positive number` };
+            return [{ error: `Scale factor ${scaleFactor} should be a positive number` }];
         }
         const scaledIngredients: IngredientDoc[] = existing.ingredients.map((ingred) => ({
             ...ingred,
             quantity: ingred.quantity * scaleFactor,
         }));
-        return { ingredients: scaledIngredients };
+        return [{ ingredients: scaledIngredients }];
     }
 }
