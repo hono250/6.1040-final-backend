@@ -53,7 +53,7 @@
 	* **effects** removes the `image` in this recipe
   * `parseFromLink(owner: User, link: String, llm: GeminiLLM): (recipe: Recipe)`
 	* **requires** this `link` is valid and accessible
-	* **effects** uses this `llm` to parse this `link` to add a recipe with this `owner`, will add information to this `title`, this `ingredients`, and this `link`, returns this recipe
+	* **effects** uses this `llm` to parse this `link` to add a recipe with this `owner`, will add information to this `title`, this `ingredients`, and this `link`, returns this recipe`
   * `copyRecipe(requestedBy: User, recipe: Recipe): (recipe: Recipe)`
 	* **requires** this `recipe` exists in the set of `Recipe`s
 	* **effects** creates a new `recipe` with the same fields as this `recipe`, but this `owner` is now this `requestedBy`, changes `isCopy` of this `recipe` and the new `recipe` to True, returns this new recipe
@@ -65,7 +65,7 @@
   * `deleteIngredient(ingredient: Ingredient)`
 	* **requires** this `ingredient` exists in the set of `Ingredient`s
 	* **effects** removes this `ingredient` from the set of `Ingredient`s
-  * `editIngredient(inputIngredient: Ingredient, newName?: String, newAmount?: number, newQuantity?: String): (ingredient: Ingredient)`
+  * `editIngredient(inputIngredient: Ingredient, newName?: String, newQuantity?: number, newUnit?: String): (ingredient: Ingredient)`
 	* **effects** modifies `inputIngredient` to have `newName`, `newAmount`, and `newUnit`, leaving omitted fields unmodified
 
 * **queries**
@@ -81,9 +81,9 @@
 	* **effects** returns all the `Recipes` that have this `query` in this `title` and these `ingredients`, where the initial recipes are the ones that have the most ingredients in these `ingredients
   * `_filterIngredientAndSearchWithinRecipes(recipes: List<Recipe> query: String, ingredients: List<String>): (newRecipes: List<Recipe>)`
 	* **effects** returns all the `Recipes` in these `recipes` that have this `query` in this `title` and these `ingredients`, where the initial recipes are the ones that have the most ingredients in these `ingredients`
-  * `_getRecipe(owner: User, title: String): (recipe: Recipe)`
+  * `_getRecipe(owner: User, title: String): (recipes: List<Recipe>)`
 	* **requires** this `owner` and this `title` exists in the set of `Recipes`
-	* **effects** returns the `Recipe` associated with this `owner` and this `title`
+	* **effects** returns the `Recipes` associated with this `owner` and this `title`
   * `_getAllRecipes(owner: User): (recipes: List<Recipe>)`
 	* **requires** this `owner` exists in the set of `Recipes`
 	* **effects** returns all the `Recipe`s associated with this `owner`
