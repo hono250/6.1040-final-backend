@@ -9,7 +9,8 @@
         "@syncs": "./src/syncs/syncs.ts",
         "@std/dotenv/load": "jsr:@std/dotenv@^0.225.0/load",
         "@std/uuid/unstable-v7": "jsr:@std/uuid@^1.0.0/unstable-v7",
-        "mongodb": "npm:mongodb@^6.3.0"
+        "mongodb": "npm:mongodb@^6.3.0",
+        "bcryptjs": "npm:bcryptjs@^2.4.3"
     },
     "tasks": {
         "start": "deno run --allow-net --allow-write --allow-read --allow-sys --allow-env src/main.ts",
