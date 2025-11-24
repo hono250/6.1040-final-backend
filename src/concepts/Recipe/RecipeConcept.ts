@@ -333,30 +333,39 @@ export default class RecipeConcept {
 
     private generateLLMPrompt(link: string): string {
         return `
-        You are a helpful AI assistant that extracts recipe information from a given link. You need to find the following details:
+        You are a helpful AI tool that extracts recipe information from a given link. You are only allowed to return data in the json formatted below, no other text. 
+
+        **IMPORTANT INSTRUCTION FOR VIDEO LINKS (e.g., YouTube):** If the provided link is to a video, you must **analyze the video content (transcription/summary)** to identify the recipe title, description, and list of ingredients. Do not simply state you cannot extract the data; instead, use the video's contents or description box to find the recipe details.
+
+        You need to find the following details:
 
         RECIPE DETAILS:
-        - Title: The name of the recipe.
-        - Description: A brief summary of the recipe. If there is no description, provide a short one based on the recipe.
-        - Ingredients: A list of ingredients with their quantities and unit of measurements. If an ingredient has no units (for example "7 limes"), use "" as the unit.
-       
+        - **Title**: The name of the recipe. 
+        - **Description**: A brief summary of the recipe. Summarize the description if it's long, and if there is no description, provide a short one based on the recipe.
+        - **Ingredients**: A list of ingredients with their quantities and unit of measurements.
+            - If an ingredient has no units (e.g., "7 limes"), use **""** (empty string) as the unit.
+            - If the ingredient has no quantity (e.g., "salt to taste"), use **-1** as the quantity.
+
         Here is the link to extract the data from: ${link}
 
-        Once you've extracted the data, you must format the output as JSON with the following structure:
+        You must visit the link and parse its contents (including transcribing or summarizing video content if applicable) to determine the recipe information.
+
+        Once you've extracted the data, you must format the output **EXACTLY** as JSON with the following structure:
         {
-            "title": "Recipe Title",
+            "title": "Recipe Title", 
             "description": "Brief description of the recipe.",
             "ingredients": [
                 {"name": "ingredient name", "quantity": number, "unit": "unit of measurement"},
                 ...
             ]
         }
-        
+
+        **STRICT FORMATTING RULE:** Do not include any other text outside of the JSON structure. Also do not put stand-ins into the json (e.g. "title": "could not extract title" is BAD, just return an error)
 
         For example, https://www.allrecipes.com/recipe/186625/spicy-lime-grilled-shrimp/ would yield:
         {
             "title": "Spicy Lime Grilled Shrimp",
-            "description": "Grilled shrimp with a lime base and some kick!"
+            "description": "Grilled shrimp with a lime base and some kick!",
             "ingredients": [
                 {"name": "shrimp", "quantity": 1, "unit": "pound"},
                 {"name": "lime", "quantity": 1, "unit": ""},
@@ -364,49 +373,71 @@ export default class RecipeConcept {
                 {"name": "vegetable oil", "quantity": 1, "unit": "tablespoon"}
             ]
         }
-        
-        Now, extract the recipe information from the link and format it as JSON as specified above. Include no other text than the JSON. If you are unable to find the data, then respond with:
-        {"error": brief description of the error }.
 
+        Now, extract the recipe information from the link and format it as JSON as specified above.
 
+        IMPORTANT: Do not include any other text than the one JSON object.
         `;
     }
     private validateLLMResponse(response: string): boolean {
         try {
             JSON.parse(response);
         } catch {
+            console.log("LLM response is not valid JSON");
             return false;
         }
 
         const responseJson = JSON.parse(response);
         if ("error" in responseJson) {
+            console.log("LLM reported error:", responseJson.error);
             return false;
         }
-        if (!responseJson.title || !responseJson.description || !Array.isArray(responseJson.ingredients)) {
+        if (!responseJson.title || !responseJson.description) {
+            console.log("LLM response missing title or description");
+            return false;
+        }
+        if (!Array.isArray(responseJson.ingredients)) {
+            console.log("LLM response ingredients is not an array");
             return false;
         }
         for (const ingred of responseJson.ingredients) {
-            if (!ingred.name || typeof ingred.quantity !== "number" || !ingred.unit) {
+            if (!ingred.name || typeof ingred.quantity !== "number" || ingred.unit === undefined ) {
+                console.log("LLM response ingredient missing name, quantity, or unit");
                 return false;
             }
         }
         return true;
     }
-    async parseFromLink({owner, link, llm}: {owner: User, link: string, llm: GeminiLLM}): Promise<{ recipe: RecipeDoc } | { error: string }> {
+    async parseFromLink({requestedBy, link, llm}: {requestedBy: User, link: string, llm: GeminiLLM}): Promise<{ recipe: RecipeDoc } | { error: string }> {
         if (!this.isValidLink(link)) {
             return { error: "Invalid link"};
         }
-        const prompt = this.generateLLMPrompt(link);
-        let llmResponse: string;
-        try {
-            llmResponse = await llm.executeLLM(prompt);
-        } catch (error) {
-            return { error: `Error generating response ` + (error as Error).message };
+        let llmResponse = "";
+        for (let attempt = 0; attempt < 3; attempt++) {
+            const prompt = this.generateLLMPrompt(link);
+            try {
+                //Query LLM
+                llmResponse = await llm.executeLLM(prompt);
+                
+                // Extract JSON from response
+                llmResponse = llmResponse.substring(llmResponse.indexOf('{'), llmResponse.lastIndexOf('}') + 1);
+                
+                // Validate response
+                if (!this.validateLLMResponse(llmResponse)) {
+                    console.log("Invalid LLM response:", llmResponse);
+                    throw new Error("Invalid LLM response");
+                }
+
+                // If valid, continue
+                break;
+            } catch (error) {
+                if (attempt === 2) {
+                    console.log("LLM request failed after 3 attempts:" + (error as Error).message);
+                    return { error: "Failed to get response from LLM." + (error as Error).message };
+                }
+            }
         }
-        if (!this.validateLLMResponse(llmResponse)) {
-            console.log("Invalid LLM response:", llmResponse);
-            return { error: "Invalid LLM response format." };
-        }
+
         const recipeData = JSON.parse(llmResponse);
         const ingredients: IngredientDoc[] = [];
         for (const ingred of recipeData.ingredients) {
@@ -415,10 +446,10 @@ export default class RecipeConcept {
         }
         const newRecipe: RecipeDoc = {
             _id: freshID(),
-            owner,
+            owner: requestedBy,
             title: recipeData.title,
             description: recipeData.description,
-            ingredients: [],
+            ingredients: ingredients,
             link,
             isCopy: false,
         };

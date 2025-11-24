@@ -1,11 +1,4 @@
-/**
- * LLM Integration
- * 
- * Handles the requestAssignmentsFromLLM functionality using Google's Gemini API.
- * The LLM prompt is hardwired with user preferences and doesn't take external hints.
- */
-
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI, HarmBlockThreshold, HarmCategory } from "npm:@google/genai";
 
 /**
  * Configuration for API access
@@ -24,17 +17,29 @@ export class GeminiLLM {
     async executeLLM (prompt: string): Promise<string> {
         try {
             // Initialize Gemini AI
-            const genAI = new GoogleGenerativeAI(this.apiKey);
-            const model = genAI.getGenerativeModel({ 
-                model: "gemini-2.5-flash-lite",
-                generationConfig: {
-                    maxOutputTokens: 1000,
+            const genAI = new GoogleGenAI({ apiKey: this.apiKey });
+            
+            // Execute the LLM
+            const result = await genAI.models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: prompt,
+                config: {
+                    maxOutputTokens: 5000,
+                    tools: [{urlContext: {}}],
+                    safetySettings: [
+                        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+                        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+                        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+                        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE }
+                    ]
                 }
             });
-            // Execute the LLM
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
+            
+            const text = result.text;
+
+            if (text === undefined) {
+                throw new Error('No text returned from Gemini API');
+            }
             return text;            
         } catch (error) {
             console.error('❌ Error calling Gemini API:', (error as Error).message);

@@ -3,11 +3,30 @@ import {
     assertEquals,
     assertExists,
 } from "jsr:@std/assert";
+import "jsr:@std/dotenv/load";
 import { testDb } from "@utils/database.ts";
 import { ID } from "@utils/types.ts";
 
 import RecipeConcept from "./RecipeConcept.ts";
+import { GeminiLLM, Config } from "@utils/gemini-llm.ts";
 
+/**
+ * Load configuration from config.json
+ */
+function loadConfig(): Config {
+    try {
+        const apikey = Deno.env.get("GEMINI_API_KEY");
+        if (!apikey) {
+            throw new Error("GEMINI_API_KEY environment variable is not set");
+        }
+        const config = { apiKey: apikey};
+        return config;
+    } catch (error) {
+        console.error('❌ Error loading config.json. Please ensure it exists with your API key.');
+        console.error('Error details:', (error as Error).message);
+        process.exit(1);
+    }
+}
 
 Deno.test("Principle: a user adds a recipe with the name of the dish, the ingredients needed, and the list of instructions or link to the recipe; this recipe can then be viewed by the user, and possibly other users; the user can also search for recipes with ingredients", async (t) => {
     const [db, client] = await testDb();
@@ -637,4 +656,55 @@ Deno.test("Actions: remaining methods (removeIngredient, link/description/image/
     await t.step("teardown: close client", async () => {
         await client.close();
     });
+});
+
+Deno.test("llm feature: parseFromLink", async (t) => {
+    const [db, client] = await testDb();
+    const concept = new RecipeConcept(db);
+    try {
+        const user = "user_llm_parser" as ID;
+        const config = loadConfig();
+        const llm = new GeminiLLM(config);
+
+        await t.step("parseFromLink: valid text-based link", async () => {
+            const res = await concept.parseFromLink({
+                requestedBy: user,
+                link: "https://www.allrecipes.com/recipe/239896/crunchy-french-onion-chicken/",
+                llm: llm
+            });
+            if ("error" in res) throw new Error(res.error);
+            const recipe = res.recipe;
+            console.log(recipe)
+            assertExists(recipe);
+            assertEquals(recipe.title.toLowerCase().includes("crunchy french onion chicken"), true);
+            assertExists(recipe.description);
+            assertEquals(recipe.ingredients.length > 0, true);
+        });
+
+        await t.step("parseFromLink: valid YT video link", async () => {
+            const res = await concept.parseFromLink({
+                requestedBy: user,
+                link: "https://youtu.be/afM7gVxT-Q8?si=2ZVNHYlJdba4OWHs",
+                llm: llm
+            });
+            if ("error" in res) throw new Error(res.error);
+            const recipe = res.recipe;
+            console.log(recipe)
+            assertExists(recipe);
+            assertEquals(recipe.title.toLowerCase().includes("pasta"), true);
+            assertExists(recipe.description);
+            assertEquals(recipe.ingredients.length > 0, true);
+        });
+
+        await t.step("parseFromLink: invalid link", async () => {
+            const res = await concept.parseFromLink({
+                requestedBy: user,
+                link: "https://www.example.com/non-recipe-page",
+                llm: llm
+            });
+            if (!("error" in res)) throw new Error("Expected error for invalid recipe link");
+        });
+    } finally {
+        await client.close();
+    }
 });
