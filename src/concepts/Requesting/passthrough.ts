@@ -26,8 +26,7 @@
 
 export const inclusions: Record<string, string> = {
   // User - public authentication
-  "/api/User/register": "public - allow new users to sign up",
-  "/api/User/login": "public - authenticate existing users",
+  "/api/UserAuthentication/login": "public - authenticate existing users",
   
   // Recipe - public queries for browsing recipes
   "/api/Recipe/_getRecipe": "public - view any recipe by owner and title",
@@ -50,16 +49,26 @@ export const inclusions: Record<string, string> = {
  */
 
 export const exclusions: Array<string> = [
-  // User - authenticated operations
-  "/api/User/logout",
-  "/api/User/authenticate",
-  "/api/User/updateDisplayName",
-  "/api/User/updatePassword",
+  // User - all operations (concept only manages user IDs)
+  "/api/User/createUser",
   "/api/User/deleteUser",
-  "/api/User/_getUser",
-  "/api/User/_getUserByEmail",
-  "/api/User/_getSessionUser",
+  "/api/User/_isUser",
   "/api/User/_getAllUsers",
+
+  // UserAuthentication - authenticated operations
+  "/api/UserAuthentication/createAuth",
+  "/api/UserAuthentication/logout",
+  "/api/UserAuthentication/authenticate",
+  "/api/UserAuthentication/updatePassword",
+  "/api/UserAuthentication/deleteAuth",
+  "/api/UserAuthentication/_getByEmail",
+  "/api/UserAuthentication/_getSessionUser",
+
+  // Profile - all operations
+  "/api/Profile/createProfile",
+  "/api/Profile/updateDisplayName",
+  "/api/Profile/deleteProfile",
+  "/api/Profile/_getProfile",
   
   // Recipe - all mutations and authenticated queries
   "/api/Recipe/createRecipe",
@@ -78,6 +87,7 @@ export const exclusions: Array<string> = [
   "/api/Recipe/createIngredient",
   "/api/Recipe/deleteIngredient",
   "/api/Recipe/editIngredient",
+  "/api/Recipe/parseFromLink",
   "/api/Recipe/_findRecipeByIngredientWithinRecipes",
   "/api/Recipe/_searchWithinRecipes",
   "/api/Recipe/_filterIngredientAndSearchWithinRecipes",
@@ -88,6 +98,8 @@ export const exclusions: Array<string> = [
   "/api/Recipe/isValidLink",
   "/api/Recipe/checkRecipeAndOwner",
   "/api/Recipe/createIngredientHelper",
+  "/api/Recipe/generateLLMPrompt",
+  "/api/Recipe/validateLLMResponse",
   
   // Collecting - all need authentication
   "/api/Collecting/create",
@@ -98,9 +110,13 @@ export const exclusions: Array<string> = [
   "/api/Collecting/removeItem",
   "/api/Collecting/rename",
   "/api/Collecting/delete",
-  "/api/Collecting/removeItemSystemwide",
   "/api/Collecting/_getItems",
   "/api/Collecting/_getMembers",
   "/api/Collecting/_getCollections",
   "/api/Collecting/_getCollectionsWithItemStatus",
+
+  //Collecting - internal system actions (used by syncs, not exposed to frontend)
+  "/api/Collecting/leaveAllCollections",
+  "/api/Collecting/removeItemSystemwide",
+  
 ];

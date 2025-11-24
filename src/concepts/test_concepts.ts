@@ -9,12 +9,16 @@ import { testDb } from "@utils/database.ts";
 
 import RecipeConcept from "./Recipe/RecipeConcept.ts";
 import UserConcept from "./User/UserConcept.ts";
+import ProfileConcept from "./Profile/ProfileConcept.ts";
 import RequestingConcept from "./Requesting/RequestingConcept.ts";
+import UserAuthenticationConcept from "./UserAuthentication/UserAuthenticationConcept.ts";
 import CollectingConcept from "./Collecting/CollectingConcept.ts";
 
 export type { default as RecipeConcept } from "./Recipe/RecipeConcept.ts";
 export type { default as UserConcept } from "./User/UserConcept.ts";
+export type { default as ProfileConcept } from "./Profile/ProfileConcept.ts";
 export type { default as RequestingConcept } from "./Requesting/RequestingConcept.ts";
+export type { default as UserAuthenticationConcept } from "./UserAuthentication/UserAuthenticationConcept.ts";
 export type { default as CollectingConcept } from "./Collecting/CollectingConcept.ts";
 
 // Initialize the database connection
@@ -22,5 +26,7 @@ export const [db, client] = await testDb();
 
 export const Recipe = Engine.instrumentConcept(new RecipeConcept(db));
 export const User = Engine.instrumentConcept(new UserConcept(db));
+export const Profile = Engine.instrumentConcept(new ProfileConcept(db));
 export const Requesting = Engine.instrumentConcept(new RequestingConcept(db));
+export const UserAuthentication = Engine.instrumentConcept(new UserAuthenticationConcept(db));
 export const Collecting = Engine.instrumentConcept(new CollectingConcept(db));

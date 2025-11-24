@@ -827,7 +827,7 @@ export default class RecipeConcept {
      *
      * **effects** returns all the `Recipe`s associated with this `owner`
      */
-    async _getAllRecipes({ owner }: { owner: User }): Promise<Array<{ recipes: RecipeDoc[] } | { error: string }>> {
+    async _getAllRecipes({ owner }: { owner: User }): Promise<Array<{ recipe: RecipeDoc } | { error: string }>> {
         if (!owner) {
             return [{ error: "Owner ID is required." }];
         }
@@ -836,8 +836,12 @@ export default class RecipeConcept {
             const recipes: RecipeDoc[] = await this.recipes
                 .find({ owner })
                 .toArray();
+            if (recipes.length === 0) {
+                return []; 
+            }
 
-            return [{ recipes }];
+            return recipes.map(r => ({ recipe: r }));
+
         } catch (err: any) {
             return [{ error: `Failed to fetch recipes: ${err.message}` }];
         }
