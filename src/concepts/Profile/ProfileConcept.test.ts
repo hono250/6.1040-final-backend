@@ -45,7 +45,7 @@ Deno.test("Profile Concept - Update Display Name", async () => {
         assertEquals(update, {});
 
         // Verify update
-        const profile = await profileConcept.getProfile(userId);
+        const profile = await profileConcept._getProfile(userId);
         assertEquals(profile?.displayName, "New Name");
 
         // Fail: Empty display name

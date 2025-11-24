@@ -11,7 +11,7 @@ Deno.test("User Concept - Create User", async () => {
         const result = await userConcept.createUser();
         assertNotEquals(result.userId, undefined);
 
-        const exists = await userConcept.isUser(result.userId);
+        const exists = await userConcept._isUser(result.userId);
         assertEquals(exists, true);
     } finally {
         await client.close();
@@ -29,7 +29,7 @@ Deno.test("User Concept - Delete User", async () => {
         // Success
         await userConcept.deleteUser({ userId });
 
-        const exists = await userConcept.isUser(userId);
+        const exists = await userConcept._isUser(userId);
         assertEquals(exists, false);
 
         // Fail: User not found

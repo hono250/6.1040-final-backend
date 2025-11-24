@@ -63,7 +63,7 @@ export default class UserConcept {
     /**
      * Query: isUser
      */
-    async isUser(userId: User): Promise<boolean> {
+    async _isUser(userId: User): Promise<boolean> {
         const count = await this.users.countDocuments({ _id: userId }, { limit: 1 });
         return count > 0;
     }

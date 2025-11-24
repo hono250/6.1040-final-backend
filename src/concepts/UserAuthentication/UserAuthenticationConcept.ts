@@ -204,14 +204,14 @@ export default class UserAuthenticationConcept {
     /**
      * Query: getByEmail
      */
-    async getByEmail(email: string): Promise<AuthDoc | null> {
+    async _getByEmail(email: string): Promise<AuthDoc | null> {
         return await this.auths.findOne({ email });
     }
 
     /**
      * Query: getSessionUser
      */
-    async getSessionUser(token: string): Promise<{ userId: User } | null> {
+    async _getSessionUser(token: string): Promise<{ userId: User } | null> {
         const session = await this.sessions.findOne({ token });
         if (!session || session.expiresAt < new Date()) {
             return null;

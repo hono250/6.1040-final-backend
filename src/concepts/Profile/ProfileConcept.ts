@@ -83,7 +83,7 @@ export default class ProfileConcept {
     /**
      * Query: getProfile
      */
-    async getProfile(userId: User): Promise<ProfileDoc | null> {
+    async _getProfile(userId: User): Promise<ProfileDoc | null> {
         return await this.profiles.findOne({ userId });
     }
 }
