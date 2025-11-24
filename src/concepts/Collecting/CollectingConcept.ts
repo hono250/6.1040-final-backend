@@ -251,6 +251,37 @@ export default class CollectingConcept {
     return {};
   }
 
+/**
+ * Action: leaveAllCollections
+ * Leaves all collections where user is a member, deletes collections where user is owner
+ * 
+ * @effects For each collection where user is a member:
+ *   - If user is owner: deletes the collection
+ *   - If user is not owner: removes user from members
+ */
+async leaveAllCollections({ user }: { user: User }): Promise<Empty | { error: string }> {
+  if (!user) {
+    return { error: "User ID is required." };
+  }
+  try {
+    const collections = await this.collections.find({ members: user }).toArray();
+    for (const collection of collections) {
+      if (collection.owner === user) {
+        await this.collections.deleteOne({ _id: collection._id });
+      } else {
+        // User is just a member - leave it
+        await this.collections.updateOne(
+          { _id: collection._id },
+          { $pull: { members: user } }
+        );
+      }
+    }
+    return {};
+  } catch (err: any) {
+    return { error: `Failed to leave collections: ${err.message}` };
+  }
+}
+
   /**
    * System Action: Removes an item from all collections system-wide.
    * @effects Removes item from all collections across all users
