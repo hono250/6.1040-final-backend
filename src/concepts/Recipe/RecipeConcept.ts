@@ -1,7 +1,8 @@
 import { Collection, Db } from "npm:mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
-
+import { GeminiLLM } from "@utils/gemini-llm.ts";
+import { json } from "node:stream/consumers";
 
 const PREFIX = "Recipe" + ".";
 
@@ -329,6 +330,104 @@ export default class RecipeConcept {
 
     //TODO:
     // parseFromLink() (llm augmented)
+
+    private generateLLMPrompt(link: string): string {
+        return `
+        You are a helpful AI assistant that extracts recipe information from a given link. You need to find the following details:
+
+        RECIPE DETAILS:
+        - Title: The name of the recipe.
+        - Description: A brief summary of the recipe. If there is no description, provide a short one based on the recipe.
+        - Ingredients: A list of ingredients with their quantities and unit of measurements. If an ingredient has no units (for example "7 limes"), use "" as the unit.
+       
+        Here is the link to extract the data from: ${link}
+
+        Once you've extracted the data, you must format the output as JSON with the following structure:
+        {
+            "title": "Recipe Title",
+            "description": "Brief description of the recipe.",
+            "ingredients": [
+                {"name": "ingredient name", "quantity": number, "unit": "unit of measurement"},
+                ...
+            ]
+        }
+        
+
+        For example, https://www.allrecipes.com/recipe/186625/spicy-lime-grilled-shrimp/ would yield:
+        {
+            "title": "Spicy Lime Grilled Shrimp",
+            "description": "Grilled shrimp with a lime base and some kick!"
+            "ingredients": [
+                {"name": "shrimp", "quantity": 1, "unit": "pound"},
+                {"name": "lime", "quantity": 1, "unit": ""},
+                {"name": "Cajun seasoning", "quantity": 3, "unit": "tablespoons"},
+                {"name": "vegetable oil", "quantity": 1, "unit": "tablespoon"}
+            ]
+        }
+        
+        Now, extract the recipe information from the link and format it as JSON as specified above. Include no other text than the JSON. If you are unable to find the data, then respond with:
+        {"error": brief description of the error }.
+
+
+        `;
+    }
+    private validateLLMResponse(response: string): boolean {
+        try {
+            JSON.parse(response);
+        } catch {
+            return false;
+        }
+
+        const responseJson = JSON.parse(response);
+        if ("error" in responseJson) {
+            return false;
+        }
+        if (!responseJson.title || !responseJson.description || !Array.isArray(responseJson.ingredients)) {
+            return false;
+        }
+        for (const ingred of responseJson.ingredients) {
+            if (!ingred.name || typeof ingred.quantity !== "number" || !ingred.unit) {
+                return false;
+            }
+        }
+        return true;
+    }
+    async parseFromLink({owner, link, llm}: {owner: User, link: string, llm: GeminiLLM}): Promise<{ recipe: RecipeDoc } | { error: string }> {
+        if (!this.isValidLink(link)) {
+            return { error: "Invalid link"};
+        }
+        const prompt = this.generateLLMPrompt(link);
+        let llmResponse: string;
+        try {
+            llmResponse = await llm.executeLLM(prompt);
+        } catch (error) {
+            return { error: `Error generating response ` + (error as Error).message };
+        }
+        if (!this.validateLLMResponse(llmResponse)) {
+            console.log("Invalid LLM response:", llmResponse);
+            return { error: "Invalid LLM response format." };
+        }
+        const recipeData = JSON.parse(llmResponse);
+        const ingredients: IngredientDoc[] = [];
+        for (const ingred of recipeData.ingredients) {
+            const newIngred = await this.createIngredientHelper(ingred.name, ingred.quantity, ingred.unit);
+            ingredients.push(newIngred);
+        }
+        const newRecipe: RecipeDoc = {
+            _id: freshID(),
+            owner,
+            title: recipeData.title,
+            description: recipeData.description,
+            ingredients: [],
+            link,
+            isCopy: false,
+        };
+
+        await this.recipes.insertOne(newRecipe);
+
+        return { recipe: newRecipe };
+    }
+
 
     // Ingredient Actions
 
