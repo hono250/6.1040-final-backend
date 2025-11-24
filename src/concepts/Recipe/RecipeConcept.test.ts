@@ -359,13 +359,17 @@ Deno.test("Queries: Search, Filter, and Metadata", async (t) => {
     });
 
     await t.step("1. _getAllRecipes (by Owner)", async () => {
-        const [resA] = await concept._getAllRecipes({ owner: userA });
-        if ("error" in resA) throw new Error(resA.error);
-        assertEquals(resA.recipes.length, 2); // Carbonara + Tomato
+        const resA = await concept._getAllRecipes({ owner: userA });
+        if (resA.length > 0 && "error" in resA[0]) {
+            throw new Error("Error fetching recipes");
+        }
+        assertEquals(resA.length, 2); // Carbonara + Tomato
 
-        const [resB] = await concept._getAllRecipes({ owner: userB });
-        if ("error" in resB) throw new Error(resB.error);
-        assertEquals(resB.recipes.length, 1); // Breakfast
+        const resB = await concept._getAllRecipes({ owner: userB });
+        if (resB.length > 0 && "error" in resB[0]) {
+            throw new Error("Error fetching recipes");
+        }
+        assertEquals(resB.length, 1); // Breakfast
     });
 
     await t.step("2. _getIngredients & _getIngredientsByName", async () => {
