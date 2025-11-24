@@ -2,3 +2,4 @@ team-contract.md
 .obsidian/*
 .env
 deno.lock
+config.json
