@@ -78,6 +78,7 @@ export const exclusions: Array<string> = [
   "/api/Recipe/createIngredient",
   "/api/Recipe/deleteIngredient",
   "/api/Recipe/editIngredient",
+  "/api/Recipe/parseFromLink",
   "/api/Recipe/_findRecipeByIngredientWithinRecipes",
   "/api/Recipe/_searchWithinRecipes",
   "/api/Recipe/_filterIngredientAndSearchWithinRecipes",
@@ -88,6 +89,8 @@ export const exclusions: Array<string> = [
   "/api/Recipe/isValidLink",
   "/api/Recipe/checkRecipeAndOwner",
   "/api/Recipe/createIngredientHelper",
+  "/api/Recipe/generateLLMPrompt",
+  "/api/Recipe/validateLLMResponse",
   
   // Collecting - all need authentication
   "/api/Collecting/create",
@@ -98,9 +101,13 @@ export const exclusions: Array<string> = [
   "/api/Collecting/removeItem",
   "/api/Collecting/rename",
   "/api/Collecting/delete",
+  "/api/Collecting/leaveAllCollections",
   "/api/Collecting/removeItemSystemwide",
   "/api/Collecting/_getItems",
   "/api/Collecting/_getMembers",
   "/api/Collecting/_getCollections",
   "/api/Collecting/_getCollectionsWithItemStatus",
+
+  //Collecting - internal system actions (used by syncs, not exposed to frontend)
+  
 ];

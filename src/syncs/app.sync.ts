@@ -130,12 +130,13 @@ export const UpdatePasswordError: Sync = ({ request, error }) => ({
  * Delete Account
  * Request: POST /api/User/deleteAccount { token }
  * Response: {}
- * 
- * NOTE: This only deletes the user account and sessions.
- * Frontend MUST handle cleanup of recipes and collections BEFORE calling this.
  */
-export const DeleteAccountRequest: Sync = ({ 
-  request, token, userId 
+
+/**
+ * Delete Account - Step 1: Delete all recipes
+ */
+export const DeleteAccountDeleteRecipes: Sync = ({ 
+  request, token, userId, recipe 
 }) => ({
   when: actions([
     Requesting.request,
@@ -144,11 +145,42 @@ export const DeleteAccountRequest: Sync = ({
   ]),
   where: async (frames) => {
     frames = await frames.query(User._getSessionUser, { token }, { userId });
-    return frames;
+    frames = await frames.query(Recipe._getAllRecipes, { owner: userId }, { recipe });
+    return frames; // 1 frame per recipe
   },
-  then: actions([
-    User.deleteUser, { user: userId }
+  then: actions(
+    [Collecting.removeItemSystemwide, { item: recipe }],
+    [Recipe.deleteRecipe, { requestedBy: userId, recipe }]
+  ),
+});
+
+/**
+ * Delete Account - Step 2: Leave collections & delete user
+ * Fires only when no recipes remain
+ */
+export const DeleteAccountFinalize: Sync = ({ 
+  request, token, userId, recipe 
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/User/deleteAccount", token },
+    { request }
   ]),
+  where: async (frames) => {
+    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    const recipesFrames = await frames.query(Recipe._getAllRecipes, { owner: userId }, { recipe });
+    
+    // Only proceed if NO recipes
+    if (recipesFrames.length > 0) {
+      return new Frames(); // empty - don't fire this sync yet
+    }
+    
+    return frames; 
+  },
+  then: actions(
+    [Collecting.leaveAllCollections, { user: userId }],
+    [User.deleteUser, { user: userId }]
+  ),
 });
 
 export const DeleteAccountResponse: Sync = ({ request }) => ({
@@ -228,6 +260,49 @@ export const CreateRecipeError: Sync = ({ request, error }) => ({
   when: actions(
     [Requesting.request, { path: "/Recipe/createRecipe" }, { request }],
     [Recipe.createRecipe, {}, { error }]
+  ),
+  then: actions([
+    Requesting.respond, { request, error }
+  ]),
+});
+
+/**
+ * Parse Recipe From Link (LLM-powered)
+ * Request: POST /api/Recipe/parseFromLink { token, link }
+ * Response: { recipe }
+ */
+export const ParseFromLinkRequest: Sync = ({ 
+  request, token, link, userId, llm 
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/Recipe/parseFromLink", token, link },
+    { request }
+  ]),
+  where: async (frames) => {
+    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    // TODO: Get/create LLM instance or make it an optional paramenter in recipe
+    return frames;
+  },
+  then: actions([
+    Recipe.parseFromLink, { owner: userId, link, llm }
+  ]),
+});
+
+export const ParseFromLinkResponse: Sync = ({ request, recipe }) => ({
+  when: actions(
+    [Requesting.request, { path: "/Recipe/parseFromLink" }, { request }],
+    [Recipe.parseFromLink, {}, { recipe }]
+  ),
+  then: actions([
+    Requesting.respond, { request, recipe }
+  ]),
+});
+
+export const ParseFromLinkError: Sync = ({ request, error }) => ({
+  when: actions(
+    [Requesting.request, { path: "/Recipe/parseFromLink" }, { request }],
+    [Recipe.parseFromLink, {}, { error }]
   ),
   then: actions([
     Requesting.respond, { request, error }
@@ -829,7 +904,7 @@ export const EditIngredientError: Sync = ({ request, error }) => ({
  * Response: { recipes }
  */
 export const GetAllMyRecipesRequest: Sync = ({ 
-  request, token, userId, recipes 
+  request, token, userId, recipe, recipes 
 }) => ({
   when: actions([
     Requesting.request,
@@ -838,8 +913,15 @@ export const GetAllMyRecipesRequest: Sync = ({
   ]),
   where: async (frames) => {
     frames = await frames.query(User._getSessionUser, { token }, { userId });
-    frames = await frames.query(Recipe._getAllRecipes, { owner: userId }, { recipes });
-    return frames;
+    frames = await frames.query(Recipe._getAllRecipes, { owner: userId }, { recipe });
+    
+    // Collect all recipes into an array for response
+    const allRecipes = frames.map((f: any) => f[recipe]);
+    
+    return new Frames({
+      ...frames[0],
+      [recipes]: allRecipes
+    });
   },
   then: actions([
     Requesting.respond, { request, recipes }
