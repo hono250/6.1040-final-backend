@@ -1,4 +1,4 @@
-import { assertEquals, assertNotEquals } from "jsr:@std/assert";
+import { assertEquals } from "jsr:@std/assert";
 import { testDb, freshID } from "@utils/database.ts";
 import ProfileConcept from "./ProfileConcept.ts";
 
@@ -45,8 +45,9 @@ Deno.test("Profile Concept - Update Display Name", async () => {
         assertEquals(update, {});
 
         // Verify update
-        const profile = await profileConcept._getProfile(userId);
-        assertEquals(profile?.displayName, "New Name");
+        const [profileResult] = await profileConcept._getProfile({ userId });
+        if ("error" in profileResult) throw new Error(profileResult.error);
+        assertEquals(profileResult.profile.displayName, "New Name");
 
         // Fail: Empty display name
         const failEmpty = await profileConcept.updateDisplayName({

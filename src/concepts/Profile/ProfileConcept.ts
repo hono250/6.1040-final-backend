@@ -83,7 +83,11 @@ export default class ProfileConcept {
     /**
      * Query: getProfile
      */
-    async _getProfile(userId: User): Promise<ProfileDoc | null> {
-        return await this.profiles.findOne({ userId });
+    async _getProfile({ userId }: { userId: User }): Promise<Array<{ profile: ProfileDoc } | { error: string }>> {
+        const profile = await this.profiles.findOne({ userId });
+        if (!profile) {
+            return [{ error: "Profile not found" }];
+        }
+        return [{ profile }];
     }
 }

@@ -204,18 +204,22 @@ export default class UserAuthenticationConcept {
     /**
      * Query: getByEmail
      */
-    async _getByEmail(email: string): Promise<AuthDoc | null> {
-        return await this.auths.findOne({ email });
+    async _getByEmail({ email }: { email: string }): Promise<Array<{ userId: User } | { error: string }>> {
+        const auth = await this.auths.findOne({ email });
+        if (!auth) {
+            return [{ error: "User not found" }];
+        }
+        return [{ userId: auth.userId }];
     }
 
     /**
      * Query: getSessionUser
      */
-    async _getSessionUser(token: string): Promise<{ userId: User } | null> {
+    async _getSessionUser(token: string): Promise<Array<{ userId: User } | { error: string }>> {
         const session = await this.sessions.findOne({ token });
         if (!session || session.expiresAt < new Date()) {
-            return null;
+            return [{ error: "Invalid or expired session" }];
         }
-        return { userId: session.user };
+        return [{ userId: session.user }];
     }
 }
