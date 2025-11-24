@@ -835,3 +835,57 @@ Deno.test("Interesting scenario: Items remain when member leaves", async () => {
     await client.close();
   }
 });
+
+Deno.test("Action: leaveAllMyCollections handles owner and member cases", async () => {
+  const [db, client] = await testDb();
+  const collectingConcept = new CollectingConcept(db);
+  try {
+    // Alice creates two collections
+    const { collection: aliceCollection1 } = (await collectingConcept.create({
+      owner: userAlice,
+      name: "Alice Collection 1",
+    })) as { collection: ID };
+    
+    const { collection: aliceCollection2 } = (await collectingConcept.create({
+      owner: userAlice,
+      name: "Alice Collection 2",
+    })) as { collection: ID };
+    // Bob creates a collection and adds Alice as member
+    const { collection: bobCollection } = (await collectingConcept.create({
+      owner: userBob,
+      name: "Bob's Collection",
+    })) as { collection: ID };
+    
+    await collectingConcept.addMember({
+      collection: bobCollection,
+      user: userAlice,
+      addedBy: userBob,
+    });
+    // Alice should be in 3 collections total
+    const [beforeResult] = await collectingConcept._getCollections({ user: userAlice });
+    assertEquals(beforeResult.collections.length, 3);
+    // Alice leaves all collections
+    const leaveResult = await collectingConcept.leaveAllCollections({ user: userAlice });
+    assertEquals("error" in leaveResult, false, "Should successfully leave all collections");
+    // Alice should now be in 0 collections
+    const [afterResult] = await collectingConcept._getCollections({ user: userAlice });
+    assertEquals(afterResult.collections.length, 0);
+    // Verify Alice's owned collections were deleted by checking they don't exist anymore
+    // Use _getMembers - if deleted, should return error
+    const aliceCollection1Check = await collectingConcept._getMembers({ collection: aliceCollection1 });
+    assertEquals("error" in aliceCollection1Check[0], true, "Alice's collection 1 should be deleted");
+    const aliceCollection2Check = await collectingConcept._getMembers({ collection: aliceCollection2 });
+    assertEquals("error" in aliceCollection2Check[0], true, "Alice's collection 2 should be deleted");
+    // Verify Bob's collection still exists and Alice is not a member
+    const [bobCollections] = await collectingConcept._getCollections({ user: userBob });
+    assertEquals(bobCollections.collections.length, 1, "Bob should still have his collection");
+    assertEquals(
+      bobCollections.collections[0].members.includes(userAlice), 
+      false, 
+      "Alice should not be in Bob's collection"
+    );
+    assertEquals(bobCollections.collections[0].owner, userBob, "Bob should still own his collection");
+  } finally {
+    await client.close();
+  }
+});

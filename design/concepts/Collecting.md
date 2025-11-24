@@ -49,7 +49,10 @@ After creating a collection, members can add items and other members, and all me
 `delete (collection: Collection, requestedBy: User)`
 - **Requires**: `requestedBy` is collection owner
 - **Effect**: Removes collection
-- 
+  
+`leaveAllCollections(user: User )`
+- **Effect** deletes all collections that user owns and removes them if user is just a member.
+  
 ## System Actions
 `removeItemSystemwide (item: Item)`
   - **Effect**: Removes item from all collections across all users
