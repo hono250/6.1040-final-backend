@@ -1,31 +1,136 @@
 // src/syncs/app.sync.ts
 import { actions, Frames, Sync } from "@engine";
-import { User, Recipe, Collecting, Requesting } from "@concepts";
+import { User, UserAuthentication, Profile, Recipe, Collecting, Requesting } from "@concepts";
 
 // ============================================================================
 // USER AUTHENTICATION & ACCOUNT MANAGEMENT
 // ============================================================================
 
 /**
+ * Register User
+ * Request: POST /api/User/register { email, password, displayName }
+ * Response: { userId, token }
+ */
+export const RegisterRequest: Sync = ({ 
+  request, email, password, displayName 
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/User/register", email, password, displayName },
+    { request }
+  ]),
+  then: actions([
+    User.createUser, {}
+  ]),
+});
+
+export const RegisterCreateAuth: Sync = ({ 
+  request, email, password, displayName, userId 
+}) => ({
+  when: actions(
+    [Requesting.request, { path: "/User/register", email, password, displayName }, { request }],
+    [User.createUser, {}, { userId }]
+  ),
+  then: actions(
+    [UserAuthentication.createAuth, { userId, email, password }],
+    [Profile.createProfile, { userId, displayName }]
+  ),
+});
+
+export const RegisterLogin: Sync = ({ 
+  request, email, password 
+}) => ({
+  when: actions(
+    [Requesting.request, { path: "/User/register", email, password }, { request }],
+    [UserAuthentication.createAuth, {}, {}],
+    [Profile.createProfile, {}, {}]
+  ),
+  then: actions([
+    UserAuthentication.login, { email, password }
+  ]),
+});
+
+export const RegisterResponse: Sync = ({ request, token }) => ({
+  when: actions(
+    [Requesting.request, { path: "/User/register" }, { request }],
+    [UserAuthentication.login, {}, { token }]
+  ),
+  then: actions([
+    Requesting.respond, { request, token }
+  ]),
+});
+
+export const RegisterAuthError: Sync = ({ request, error }) => ({
+  when: actions(
+    [Requesting.request, { path: "/User/register" }, { request }],
+    [UserAuthentication.createAuth, {}, { error }]
+  ),
+  then: actions([
+    Requesting.respond, { request, error }
+  ]),
+});
+
+export const RegisterProfileError: Sync = ({ request, error }) => ({
+  when: actions(
+    [Requesting.request, { path: "/User/register" }, { request }],
+    [Profile.createProfile, {}, { error }]
+  ),
+  then: actions([
+    Requesting.respond, { request, error }
+  ]),
+});
+
+/**
+ * Get Profile (authenticated)
+ * Request: POST /api/Profile/getProfile { token }
+ * Response: { profile }
+ */
+export const GetProfileRequest: Sync = ({ 
+  request, token, userId, profile 
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/Profile/getProfile", token },
+    { request }
+  ]),
+  where: async (frames) => {
+    const originalFrame = frames[0];
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
+    frames = await frames.query(Profile._getProfile, { userId }, { profile });
+    
+    // Handle error case
+    const profileResult = frames[0][profile] as any;
+    if (profileResult?.error) {
+      return new Frames({ ...originalFrame, error: profileResult.error });
+    }
+    
+    return frames;
+  },
+  then: actions([
+    Requesting.respond, { request, profile }
+  ]),
+});
+
+/**
  * Logout
- * Request: POST /api/User/logout { token }
+ * Request: POST /api/UserAuthentication/logout { token }
  * Response: {}
  */
 export const LogoutRequest: Sync = ({ request, token }) => ({
   when: actions([
     Requesting.request,
-    { path: "/User/logout", token },
+    { path: "/UserAuthentication/logout", token },
     { request }
   ]),
   then: actions([
-    User.logout, { token }
+    UserAuthentication.logout, { token }
   ]),
 });
 
 export const LogoutResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "/User/logout" }, { request }],
-    [User.logout, {}, {}]
+    [Requesting.request, { path: "/UserAuthentication/logout" }, { request }],
+    [UserAuthentication.logout, {}, {}]
   ),
   then: actions([
     Requesting.respond, { request }
@@ -34,8 +139,8 @@ export const LogoutResponse: Sync = ({ request }) => ({
 
 export const LogoutError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "/User/logout" }, { request }],
-    [User.logout, {}, { error }]
+    [Requesting.request, { path: "/UserAuthentication/logout" }, { request }],
+    [UserAuthentication.logout, {}, { error }]
   ),
   then: actions([
     Requesting.respond, { request, error }
@@ -44,7 +149,7 @@ export const LogoutError: Sync = ({ request, error }) => ({
 
 /**
  * Update Display Name
- * Request: POST /api/User/updateDisplayName { token, displayName }
+ * Request: POST /api/Profile/updateDisplayName { token, displayName }
  * Response: {}
  */
 export const UpdateDisplayNameRequest: Sync = ({ 
@@ -52,22 +157,22 @@ export const UpdateDisplayNameRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "/User/updateDisplayName", token, displayName },
+    { path: "/Profile/updateDisplayName", token, displayName },
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
-    User.updateDisplayName, { user: userId, displayName }
+    Profile.updateDisplayName, { userId, displayName }
   ]),
 });
 
 export const UpdateDisplayNameResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "/User/updateDisplayName" }, { request }],
-    [User.updateDisplayName, {}, {}]
+    [Requesting.request, { path: "/Profile/updateDisplayName" }, { request }],
+    [Profile.updateDisplayName, {}, {}]
   ),
   then: actions([
     Requesting.respond, { request }
@@ -76,8 +181,8 @@ export const UpdateDisplayNameResponse: Sync = ({ request }) => ({
 
 export const UpdateDisplayNameError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "/User/updateDisplayName" }, { request }],
-    [User.updateDisplayName, {}, { error }]
+    [Requesting.request, { path: "/Profile/updateDisplayName" }, { request }],
+    [Profile.updateDisplayName, {}, { error }]
   ),
   then: actions([
     Requesting.respond, { request, error }
@@ -86,7 +191,7 @@ export const UpdateDisplayNameError: Sync = ({ request, error }) => ({
 
 /**
  * Update Password
- * Request: POST /api/User/updatePassword { token, oldPassword, newPassword }
+ * Request: POST /api/UserAuthentication/updatePassword { token, oldPassword, newPassword }
  * Response: {}
  */
 export const UpdatePasswordRequest: Sync = ({ 
@@ -94,22 +199,22 @@ export const UpdatePasswordRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "/User/updatePassword", token, oldPassword, newPassword },
+    { path: "/UserAuthentication/updatePassword", token, oldPassword, newPassword },
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
-    User.updatePassword, { user: userId, oldPassword, newPassword }
+    UserAuthentication.updatePassword, { userId, oldPassword, newPassword }
   ]),
 });
 
 export const UpdatePasswordResponse: Sync = ({ request }) => ({
   when: actions(
-    [Requesting.request, { path: "/User/updatePassword" }, { request }],
-    [User.updatePassword, {}, {}]
+    [Requesting.request, { path: "/UserAuthentication/updatePassword" }, { request }],
+    [UserAuthentication.updatePassword, {}, {}]
   ),
   then: actions([
     Requesting.respond, { request }
@@ -118,8 +223,8 @@ export const UpdatePasswordResponse: Sync = ({ request }) => ({
 
 export const UpdatePasswordError: Sync = ({ request, error }) => ({
   when: actions(
-    [Requesting.request, { path: "/User/updatePassword" }, { request }],
-    [User.updatePassword, {}, { error }]
+    [Requesting.request, { path: "/UserAuthentication/updatePassword" }, { request }],
+    [UserAuthentication.updatePassword, {}, { error }]
   ),
   then: actions([
     Requesting.respond, { request, error }
@@ -144,7 +249,7 @@ export const DeleteAccountDeleteRecipes: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     frames = await frames.query(Recipe._getAllRecipes, { owner: userId }, { recipe });
     return frames; // 1 frame per recipe
   },
@@ -155,7 +260,7 @@ export const DeleteAccountDeleteRecipes: Sync = ({
 });
 
 /**
- * Delete Account - Step 2: Leave collections & delete user
+ * Delete Account - Step 2: Leave collections & delete user (all 3 concepts)
  * Fires only when no recipes remain
  */
 export const DeleteAccountFinalize: Sync = ({ 
@@ -167,7 +272,7 @@ export const DeleteAccountFinalize: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     const recipesFrames = await frames.query(Recipe._getAllRecipes, { owner: userId }, { recipe });
     
     // Only proceed if NO recipes
@@ -179,7 +284,9 @@ export const DeleteAccountFinalize: Sync = ({
   },
   then: actions(
     [Collecting.leaveAllCollections, { user: userId }],
-    [User.deleteUser, { user: userId }]
+    [Profile.deleteProfile, { userId }],
+    [UserAuthentication.deleteAuth, { userId }],
+    [User.deleteUser, { userId }]
   ),
 });
 
@@ -217,11 +324,11 @@ export const CreateRecipeWithLinkRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "/Recipe/createRecipe", token, title, link },  // link must exist
+    { path: "/Recipe/createRecipe", token, title, link },
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -234,11 +341,11 @@ export const CreateRecipeWithDescriptionRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "/Recipe/createRecipe", token, title, description },  // description must exist
+    { path: "/Recipe/createRecipe", token, title, description },
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -280,8 +387,8 @@ export const ParseFromLinkRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
-    // TODO: Get/create LLM instance or make it an optional paramenter in recipe
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
+    // TODO: Get/create LLM instance or make it an optional parameter in recipe
     return frames;
   },
   then: actions([
@@ -323,7 +430,7 @@ export const DeleteRecipeRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions(
@@ -354,7 +461,7 @@ export const DeleteRecipeError: Sync = ({ request, error }) => ({
 
 /**
  * Copy Recipe (authenticated)
- * Request: POST /api/Recipe/copyRecipe { token, originalRecipe }
+ * Request: POST /api/Recipe/copyRecipe { token, recipe }
  * Response: { recipe }
  */
 export const CopyRecipeRequest: Sync = ({ 
@@ -366,7 +473,7 @@ export const CopyRecipeRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -408,7 +515,7 @@ export const AddIngredientToRecipeRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -450,7 +557,7 @@ export const RemoveIngredientFromRecipeRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -492,7 +599,7 @@ export const SetRecipeLinkRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -534,7 +641,7 @@ export const RemoveRecipeLinkRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -576,7 +683,7 @@ export const SetRecipeDescriptionRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -618,7 +725,7 @@ export const RemoveRecipeDescriptionRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -660,7 +767,7 @@ export const SetRecipeImageRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -702,7 +809,7 @@ export const DeleteRecipeImageRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -744,7 +851,7 @@ export const ParseIngredientsRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -786,7 +893,7 @@ export const CreateIngredientRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -828,7 +935,7 @@ export const DeleteIngredientRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -870,7 +977,7 @@ export const EditIngredientRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -912,8 +1019,17 @@ export const GetAllMyRecipesRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    const originalFrame = frames[0];
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     frames = await frames.query(Recipe._getAllRecipes, { owner: userId }, { recipe });
+    
+    // Handle empty case
+    if (frames.length === 0) {
+      return new Frames({
+        ...originalFrame,
+        [recipes]: []
+      });
+    }
     
     // Collect all recipes into an array for response
     const allRecipes = frames.map((f: any) => f[recipe]);
@@ -927,8 +1043,6 @@ export const GetAllMyRecipesRequest: Sync = ({
     Requesting.respond, { request, recipes }
   ]),
 });
-
-//response and error handling for GellAllRecipes happens in the request sync
 
 /**
  * View Recipe (authenticated - includes collection status)
@@ -947,7 +1061,7 @@ export const ViewRecipeAuthenticatedRequest: Sync = ({
     const originalFrame = frames[0];
     
     // Authenticate
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     
     // Get the recipe
     frames = await frames.query(Recipe._getRecipe, { owner, title }, { recipes });
@@ -978,8 +1092,6 @@ export const ViewRecipeAuthenticatedRequest: Sync = ({
   ]),
 });
 
-// Responde and error handling for ViewRecipeAuthenticated handled in request sync
-
 // ============================================================================
 // COLLECTION MANAGEMENT
 // ============================================================================
@@ -998,7 +1110,7 @@ export const CreateCollectionRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -1040,7 +1152,7 @@ export const DeleteCollectionRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -1082,7 +1194,7 @@ export const RenameCollectionRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -1116,7 +1228,7 @@ export const RenameCollectionError: Sync = ({ request, error }) => ({
  * Response: { collections }
  */
 export const GetMyCollectionsRequest: Sync = ({ 
-  request, token, userId,collections 
+  request, token, userId, collections 
 }) => ({
   when: actions([
     Requesting.request,
@@ -1124,7 +1236,7 @@ export const GetMyCollectionsRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     frames = await frames.query(Collecting._getCollections, { user: userId }, { collections });
     return frames;
   },
@@ -1148,22 +1260,22 @@ export const ViewCollectionRequest: Sync = ({
   ]),
   where: async (frames) => {
     const originalFrame = frames[0];
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
 
     // Collection items
     const itemsFrames = await frames.query(Collecting._getItems, { collection, requestingUser: userId }, { items });
 
-    //collection members
+    // Collection members
     const membersFrames = await frames.query(Collecting._getMembers, { collection }, { members });
     
     // Combine results into single frame
     return new Frames({
         ...originalFrame,
         [userId]: frames[0][userId],
-        [items]: itemsFrames[0][items],
-        [members]: membersFrames[0][members]
+        [items]: itemsFrames[0]?.[items] || [],
+        [members]: membersFrames[0]?.[members] || []
     });
-    },
+  },
   then: actions([
     Requesting.respond, { request, items, members }
   ]),
@@ -1183,7 +1295,7 @@ export const AddItemToCollectionRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -1225,7 +1337,7 @@ export const RemoveItemFromCollectionRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -1267,8 +1379,8 @@ export const AddMemberToCollectionRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId: currentUserId });
-    frames = await frames.query(User._getUserByEmail, { email }, { userId: newUserId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId: currentUserId });
+    frames = await frames.query(UserAuthentication._getByEmail, { email }, { userId: newUserId });
     return frames;
   },
   then: actions([
@@ -1310,7 +1422,7 @@ export const RemoveMemberFromCollectionRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId: currentUserId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId: currentUserId });
     return frames;
   },
   then: actions([
@@ -1352,7 +1464,7 @@ export const LeaveCollectionRequest: Sync = ({
     { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     return frames;
   },
   then: actions([
@@ -1392,7 +1504,7 @@ export const LeaveCollectionError: Sync = ({ request, error }) => ({
 /**
  * Search in My Collections (authenticated)
  * Request: POST /api/Recipe/searchMyCollections { token, ingredientNames, titleQuery }
- * Response: { recipes }
+ * Response: { results }
  */
 export const SearchMyCollectionsRequest: Sync = ({ 
   request, token, ingredientNames, titleQuery, userId, collections, collection, items, results 
@@ -1406,19 +1518,14 @@ export const SearchMyCollectionsRequest: Sync = ({
     const originalFrame = frames[0];
     
     // Authenticate
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     
-   // Get all collections user is in - returns [{ collections: [...] }]
-    frames = await frames.query(Collecting._getCollections, { user: userId}, { collections });
+    // Get all collections user is in
+    frames = await frames.query(Collecting._getCollections, { user: userId }, { collections });
 
-
-    // query returns frames where each frame might have the collection data
-    // Collecting._getCollections returns Array<CollectionDoc[]>, so we need to extract
     const collectionsResult = frames[0][collections] as any;
     
-    
     if (!collectionsResult || !Array.isArray(collectionsResult) || collectionsResult.length === 0) {
-      // User has no collections
       return new Frames({ ...originalFrame, [results]: [] });
     }
 
@@ -1436,8 +1543,8 @@ export const SearchMyCollectionsRequest: Sync = ({
 
     // Collect all unique items across collections
     const allItems = new Set();
-    frames.forEach((frame:any) => {
-      const itemsResult = frame[items]; // this is { items: [...] } not [...]
+    frames.forEach((frame: any) => {
+      const itemsResult = frame[items];
       if (itemsResult && Array.isArray(itemsResult)) {
         itemsResult.forEach((item: any) => allItems.add(item));
       }
@@ -1468,7 +1575,7 @@ export const SearchMyCollectionsRequest: Sync = ({
 /**
  * Search Global Authenticated (flags recipes in user's collections)
  * Request: POST /api/Recipe/searchGlobalAuthenticated { token, ingredientNames, titleQuery }
- * Response: { results } - each recipe has inMyCollections: boolean
+ * Response: { results }
  */
 export const SearchGlobalAuthenticatedRequest: Sync = ({ 
   request, token, ingredientNames, titleQuery, userId, results, collections, collection, items
@@ -1482,7 +1589,7 @@ export const SearchGlobalAuthenticatedRequest: Sync = ({
     const originalFrame = frames[0];
     
     // Authenticate
-    frames = await frames.query(User._getSessionUser, { token }, { userId });
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
 
     const authenticatedUserId = frames[0][userId]; 
     
@@ -1498,7 +1605,7 @@ export const SearchGlobalAuthenticatedRequest: Sync = ({
     if (!globalResults || globalResults.length === 0) {
       return new Frames({ 
         ...originalFrame,
-        [userId]: authenticatedUserId, // keep UserId 
+        [userId]: authenticatedUserId,
         [results]: [] 
       });
     }
