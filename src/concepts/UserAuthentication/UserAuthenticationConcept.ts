@@ -1,7 +1,7 @@
 import { Collection, Db, ObjectId } from "npm:mongodb";
 import { Empty, ID } from "@utils/types.ts";
 import { freshID } from "@utils/database.ts";
-import * as bcrypt from "npm:bcryptjs";
+import bcrypt from "npm:bcryptjs";
 
 // Collection prefix to ensure namespace separation
 const PREFIX = "UserAuthentication" + ".";

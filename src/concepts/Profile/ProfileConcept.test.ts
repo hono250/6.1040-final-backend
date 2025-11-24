@@ -1,6 +1,6 @@
 import { assertEquals, assertNotEquals } from "jsr:@std/assert";
 import { testDb, freshID } from "@utils/database.ts";
-import ProfileConcept from "./Profile.ts";
+import ProfileConcept from "./ProfileConcept.ts";
 
 Deno.test("Profile Concept - Create Profile", async () => {
     const [db, client] = await testDb();
