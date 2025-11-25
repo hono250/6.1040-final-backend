@@ -349,12 +349,14 @@ async leaveAllCollections({ user }: { user: User }): Promise<Empty | { error: st
    */
   async _getCollectionsWithItemStatus(
     { user, item }: { user: User; item: Item }
-  ): Promise<Array<{ collection: CollectionDoc; hasItem: boolean }>> {
+  ): Promise<Array<{ collectionsWithStatus: Array<CollectionDoc & { hasItem: boolean }> }>> {
     const userCollections = await this.collections.find({ members: user }).toArray();
     
-    return userCollections.map(collection => ({
-      collection,
+    const result = userCollections.map(collection => ({
+      ...collection,
       hasItem: collection.items.includes(item)
     }));
+    
+    return [{ collectionsWithStatus: result }];
   }
 }
