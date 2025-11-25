@@ -215,7 +215,7 @@ export default class UserAuthenticationConcept {
     /**
      * Query: getSessionUser
      */
-    async _getSessionUser(token: string): Promise<Array<{ userId: User } | { error: string }>> {
+    async _getSessionUser({token}: {token: string}): Promise<Array<{ userId: User } | { error: string }>> {
         const session = await this.sessions.findOne({ token });
         if (!session || session.expiresAt < new Date()) {
             return [{ error: "Invalid or expired session" }];
