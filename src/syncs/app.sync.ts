@@ -319,12 +319,12 @@ export const DeleteAccountError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/createRecipe { token, title, link?, description? }
  * Response: { recipe }
  */
-export const CreateRecipeWithLinkRequest: Sync = ({ 
-  request, token, title, link, userId 
+export const CreateRecipeRequest: Sync = ({ 
+  request, token, title, link, description, userId
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "/Recipe/createRecipe", token, title, link },
+    { path: "/Recipe/createRecipe", token, title },  // Only require token + title
     { request }
   ]),
   where: async (frames) => {
@@ -332,24 +332,8 @@ export const CreateRecipeWithLinkRequest: Sync = ({
     return frames;
   },
   then: actions([
-    Recipe.createRecipe, { owner: userId, title, link }
-  ]),
-});
-
-export const CreateRecipeWithDescriptionRequest: Sync = ({ 
-  request, token, title, description, userId 
-}) => ({
-  when: actions([
-    Requesting.request,
-    { path: "/Recipe/createRecipe", token, title, description },
-    { request }
-  ]),
-  where: async (frames) => {
-    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
-    return frames;
-  },
-  then: actions([
-    Recipe.createRecipe, { owner: userId, title, description }
+    // Pass ALL fields to createRecipe, it handles undefined values
+    Recipe.createRecipe, { owner: userId, title, link, description }
   ]),
 });
 
