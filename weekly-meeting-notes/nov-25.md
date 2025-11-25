@@ -29,6 +29,10 @@
 ### Questions
 
 - Can you help us with brainstorming how to gear it towards ingredient based searching and emphasizing that? 
+	- provide metric or add AI to estimate impact on food waste
+	- you're able to use x number of ingredients through this ingredient based search 
+	- try to use what you already have in your concepts
+	- ask AI for brainstorming tips
 
 ---
 
@@ -39,4 +43,6 @@
 
 ### Additional Notes
 
-
+- as long as you have your main functionality done for alpha, it's okay
+- allow yourself to have enough time to make screen recording
+- make sure you update development plan 

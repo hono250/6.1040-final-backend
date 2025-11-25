@@ -11,8 +11,8 @@ import { User, UserAuthentication, Profile, Recipe, Collecting, Requesting } fro
  * Request: POST /api/User/register { email, password, displayName }
  * Response: { userId, token }
  */
-export const RegisterRequest: Sync = ({ 
-  request, email, password, displayName 
+export const RegisterRequest: Sync = ({
+  request, email, password, displayName
 }) => ({
   when: actions([
     Requesting.request,
@@ -24,8 +24,8 @@ export const RegisterRequest: Sync = ({
   ]),
 });
 
-export const RegisterCreateAuth: Sync = ({ 
-  request, email, password, displayName, userId 
+export const RegisterCreateAuth: Sync = ({
+  request, email, password, displayName, userId
 }) => ({
   when: actions(
     [Requesting.request, { path: "/User/register", email, password, displayName }, { request }],
@@ -37,8 +37,8 @@ export const RegisterCreateAuth: Sync = ({
   ),
 });
 
-export const RegisterLogin: Sync = ({ 
-  request, email, password 
+export const RegisterLogin: Sync = ({
+  request, email, password
 }) => ({
   when: actions(
     [Requesting.request, { path: "/User/register", email, password }, { request }],
@@ -85,8 +85,8 @@ export const RegisterProfileError: Sync = ({ request, error }) => ({
  * Request: POST /api/Profile/getProfile { token }
  * Response: { profile }
  */
-export const GetProfileRequest: Sync = ({ 
-  request, token, userId, profile 
+export const GetProfileRequest: Sync = ({
+  request, token, userId, profile
 }) => ({
   when: actions([
     Requesting.request,
@@ -97,13 +97,13 @@ export const GetProfileRequest: Sync = ({
     const originalFrame = frames[0];
     frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     frames = await frames.query(Profile._getProfile, { userId }, { profile });
-    
+
     // Handle error case
     const profileResult = frames[0][profile] as any;
     if (profileResult?.error) {
       return new Frames({ ...originalFrame, error: profileResult.error });
     }
-    
+
     return frames;
   },
   then: actions([
@@ -152,8 +152,8 @@ export const LogoutError: Sync = ({ request, error }) => ({
  * Request: POST /api/Profile/updateDisplayName { token, displayName }
  * Response: {}
  */
-export const UpdateDisplayNameRequest: Sync = ({ 
-  request, token, displayName, userId 
+export const UpdateDisplayNameRequest: Sync = ({
+  request, token, displayName, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -194,8 +194,8 @@ export const UpdateDisplayNameError: Sync = ({ request, error }) => ({
  * Request: POST /api/UserAuthentication/updatePassword { token, oldPassword, newPassword }
  * Response: {}
  */
-export const UpdatePasswordRequest: Sync = ({ 
-  request, token, oldPassword, newPassword, userId 
+export const UpdatePasswordRequest: Sync = ({
+  request, token, oldPassword, newPassword, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -240,8 +240,8 @@ export const UpdatePasswordError: Sync = ({ request, error }) => ({
 /**
  * Delete Account - Step 1: Delete all recipes
  */
-export const DeleteAccountDeleteRecipes: Sync = ({ 
-  request, token, userId, recipe 
+export const DeleteAccountDeleteRecipes: Sync = ({
+  request, token, userId, recipe
 }) => ({
   when: actions([
     Requesting.request,
@@ -263,8 +263,8 @@ export const DeleteAccountDeleteRecipes: Sync = ({
  * Delete Account - Step 2: Leave collections & delete user (all 3 concepts)
  * Fires only when no recipes remain
  */
-export const DeleteAccountFinalize: Sync = ({ 
-  request, token, userId, recipe 
+export const DeleteAccountFinalize: Sync = ({
+  request, token, userId, recipe
 }) => ({
   when: actions([
     Requesting.request,
@@ -274,13 +274,13 @@ export const DeleteAccountFinalize: Sync = ({
   where: async (frames) => {
     frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     const recipesFrames = await frames.query(Recipe._getAllRecipes, { owner: userId }, { recipe });
-    
+
     // Only proceed if NO recipes
     if (recipesFrames.length > 0) {
       return new Frames(); // empty - don't fire this sync yet
     }
-    
-    return frames; 
+
+    return frames;
   },
   then: actions(
     [Collecting.leaveAllCollections, { user: userId }],
@@ -319,12 +319,12 @@ export const DeleteAccountError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/createRecipe { token, title, link?, description? }
  * Response: { recipe }
  */
-export const CreateRecipeRequest: Sync = ({ 
+export const CreateRecipeRequest: Sync = ({
   request, token, title, link, description, userId
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "/Recipe/createRecipe", token, title, link, description }, 
+    { path: "/Recipe/createRecipe", token, title, link, description },
     { request }
   ]),
   where: async (frames) => {
@@ -362,7 +362,7 @@ export const CreateRecipeError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/parseFromLink { token, link }
  * Response: { recipe }
  */
-export const ParseFromLinkRequest: Sync = ({ 
+export const ParseFromLinkRequest: Sync = ({
   request, token, link, userId
 }) => ({
   when: actions([
@@ -375,7 +375,7 @@ export const ParseFromLinkRequest: Sync = ({
     return frames;
   },
   then: actions([
-    Recipe.parseFromLink, { owner: userId, link }
+    Recipe.parseFromLink, { requestedBy: userId, link }
   ]),
 });
 
@@ -404,8 +404,8 @@ export const ParseFromLinkError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/deleteRecipe { token, recipe }
  * Response: {}
  */
-export const DeleteRecipeRequest: Sync = ({ 
-  request, token, recipe, userId 
+export const DeleteRecipeRequest: Sync = ({
+  request, token, recipe, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -447,8 +447,8 @@ export const DeleteRecipeError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/copyRecipe { token, recipe }
  * Response: { recipe }
  */
-export const CopyRecipeRequest: Sync = ({ 
-  request, token, originalRecipe, userId 
+export const CopyRecipeRequest: Sync = ({
+  request, token, originalRecipe, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -489,8 +489,8 @@ export const CopyRecipeError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/addIngredientToRecipe { token, recipe, ingredient }
  * Response: {}
  */
-export const AddIngredientToRecipeRequest: Sync = ({ 
-  request, token, recipe, ingredient, userId 
+export const AddIngredientToRecipeRequest: Sync = ({
+  request, token, recipe, ingredient, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -531,8 +531,8 @@ export const AddIngredientToRecipeError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/removeIngredientFromRecipe { token, recipe, ingredient }
  * Response: {}
  */
-export const RemoveIngredientFromRecipeRequest: Sync = ({ 
-  request, token, recipe, ingredient, userId 
+export const RemoveIngredientFromRecipeRequest: Sync = ({
+  request, token, recipe, ingredient, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -573,8 +573,8 @@ export const RemoveIngredientFromRecipeError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/setLink { token, recipe, link }
  * Response: {}
  */
-export const SetRecipeLinkRequest: Sync = ({ 
-  request, token, recipe, link, userId 
+export const SetRecipeLinkRequest: Sync = ({
+  request, token, recipe, link, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -615,8 +615,8 @@ export const SetRecipeLinkError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/removeLink { token, recipe }
  * Response: {}
  */
-export const RemoveRecipeLinkRequest: Sync = ({ 
-  request, token, recipe, userId 
+export const RemoveRecipeLinkRequest: Sync = ({
+  request, token, recipe, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -657,8 +657,8 @@ export const RemoveRecipeLinkError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/setDescription { token, recipe, description }
  * Response: {}
  */
-export const SetRecipeDescriptionRequest: Sync = ({ 
-  request, token, recipe, description, userId 
+export const SetRecipeDescriptionRequest: Sync = ({
+  request, token, recipe, description, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -699,8 +699,8 @@ export const SetRecipeDescriptionError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/removeDescription { token, recipe }
  * Response: {}
  */
-export const RemoveRecipeDescriptionRequest: Sync = ({ 
-  request, token, recipe, userId 
+export const RemoveRecipeDescriptionRequest: Sync = ({
+  request, token, recipe, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -741,8 +741,8 @@ export const RemoveRecipeDescriptionError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/setImage { token, recipe, image }
  * Response: {}
  */
-export const SetRecipeImageRequest: Sync = ({ 
-  request, token, recipe, image, userId 
+export const SetRecipeImageRequest: Sync = ({
+  request, token, recipe, image, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -783,8 +783,8 @@ export const SetRecipeImageError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/deleteImage { token, recipe }
  * Response: {}
  */
-export const DeleteRecipeImageRequest: Sync = ({ 
-  request, token, recipe, userId 
+export const DeleteRecipeImageRequest: Sync = ({
+  request, token, recipe, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -825,8 +825,8 @@ export const DeleteRecipeImageError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/parseIngredients { token, recipe, ingredientsText }
  * Response: { ingredients }
  */
-export const ParseIngredientsRequest: Sync = ({ 
-  request, token, recipe, ingredientsText, userId 
+export const ParseIngredientsRequest: Sync = ({
+  request, token, recipe, ingredientsText, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -867,8 +867,8 @@ export const ParseIngredientsError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/createIngredient { token, name, quantity, unit }
  * Response: { ingredient }
  */
-export const CreateIngredientRequest: Sync = ({ 
-  request, token, name, quantity, unit, userId 
+export const CreateIngredientRequest: Sync = ({
+  request, token, name, quantity, unit, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -909,8 +909,8 @@ export const CreateIngredientError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/deleteIngredient { token, ingredient }
  * Response: {}
  */
-export const DeleteIngredientRequest: Sync = ({ 
-  request, token, ingredient, userId 
+export const DeleteIngredientRequest: Sync = ({
+  request, token, ingredient, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -951,8 +951,8 @@ export const DeleteIngredientError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/editIngredient { token, inputIngredient, newName?, newQuantity?, newUnit? }
  * Response: {}
  */
-export const EditIngredientRequest: Sync = ({ 
-  request, token, inputIngredient, newName, newQuantity, newUnit, userId 
+export const EditIngredientRequest: Sync = ({
+  request, token, inputIngredient, newName, newQuantity, newUnit, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -993,8 +993,8 @@ export const EditIngredientError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/getAllMyRecipes { token }
  * Response: { recipes }
  */
-export const GetAllMyRecipesRequest: Sync = ({ 
-  request, token, userId, recipe, recipes 
+export const GetAllMyRecipesRequest: Sync = ({
+  request, token, userId, recipe, recipes
 }) => ({
   when: actions([
     Requesting.request,
@@ -1005,7 +1005,7 @@ export const GetAllMyRecipesRequest: Sync = ({
     const originalFrame = frames[0];
     frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     frames = await frames.query(Recipe._getAllRecipes, { owner: userId }, { recipe });
-    
+
     // Handle empty case
     if (frames.length === 0) {
       return new Frames({
@@ -1013,10 +1013,10 @@ export const GetAllMyRecipesRequest: Sync = ({
         [recipes]: []
       });
     }
-    
+
     // Collect all recipes into an array for response
     const allRecipes = frames.map((f: any) => f[recipe]);
-    
+
     return new Frames({
       ...frames[0],
       [recipes]: allRecipes
@@ -1032,8 +1032,8 @@ export const GetAllMyRecipesRequest: Sync = ({
  * Request: POST /api/Recipe/viewRecipe { token, owner, title }
  * Response: { recipes, collectionsWithStatus }
  */
-export const ViewRecipeAuthenticatedRequest: Sync = ({ 
-  request, token, owner, title, userId, recipes, collectionsWithStatus 
+export const ViewRecipeAuthenticatedRequest: Sync = ({
+  request, token, owner, title, userId, recipes, collectionsWithStatus
 }) => ({
   when: actions([
     Requesting.request,
@@ -1042,32 +1042,32 @@ export const ViewRecipeAuthenticatedRequest: Sync = ({
   ]),
   where: async (frames) => {
     const originalFrame = frames[0];
-    
+
     // Authenticate
     frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
-    
+
     // Get the recipe
     frames = await frames.query(Recipe._getRecipe, { owner, title }, { recipes });
-    
+
     // Check if query returned error
     const recipesResult = frames[0][recipes] as any;
     if (!recipesResult || (recipesResult.error)) {
       return new Frames({ ...originalFrame, [recipes]: [], error: recipesResult?.error || "Recipe not found" });
     }
-    
+
     // Extract recipe ID
     const recipeId = recipesResult[0]?._id;
     if (!recipeId) {
       return new Frames({ ...originalFrame, [recipes]: [], [collectionsWithStatus]: [] });
     }
-    
+
     // Get collections with item status
     frames = await frames.query(
       Collecting._getCollectionsWithItemStatus,
       { user: userId, item: recipeId },
       { collectionsWithStatus }
     );
-    
+
     return frames;
   },
   then: actions([
@@ -1084,8 +1084,8 @@ export const ViewRecipeAuthenticatedRequest: Sync = ({
  * Request: POST /api/Collecting/create { token, name }
  * Response: { collection }
  */
-export const CreateCollectionRequest: Sync = ({ 
-  request, token, name, userId 
+export const CreateCollectionRequest: Sync = ({
+  request, token, name, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -1126,8 +1126,8 @@ export const CreateCollectionError: Sync = ({ request, error }) => ({
  * Request: POST /api/Collecting/delete { token, collection }
  * Response: {}
  */
-export const DeleteCollectionRequest: Sync = ({ 
-  request, token, collection, userId 
+export const DeleteCollectionRequest: Sync = ({
+  request, token, collection, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -1168,8 +1168,8 @@ export const DeleteCollectionError: Sync = ({ request, error }) => ({
  * Request: POST /api/Collecting/rename { token, collection, newName }
  * Response: {}
  */
-export const RenameCollectionRequest: Sync = ({ 
-  request, token, collection, newName, userId 
+export const RenameCollectionRequest: Sync = ({
+  request, token, collection, newName, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -1210,8 +1210,8 @@ export const RenameCollectionError: Sync = ({ request, error }) => ({
  * Request: POST /api/Collecting/getMyCollections { token }
  * Response: { collections }
  */
-export const GetMyCollectionsRequest: Sync = ({ 
-  request, token, userId, collections 
+export const GetMyCollectionsRequest: Sync = ({
+  request, token, userId, collections
 }) => ({
   when: actions([
     Requesting.request,
@@ -1233,8 +1233,8 @@ export const GetMyCollectionsRequest: Sync = ({
  * Request: POST /api/Collecting/viewCollection { token, collection }
  * Response: { items, members }
  */
-export const ViewCollectionRequest: Sync = ({ 
-  request, token, collection, userId, items, members 
+export const ViewCollectionRequest: Sync = ({
+  request, token, collection, userId, items, members
 }) => ({
   when: actions([
     Requesting.request,
@@ -1250,13 +1250,13 @@ export const ViewCollectionRequest: Sync = ({
 
     // Collection members
     const membersFrames = await frames.query(Collecting._getMembers, { collection }, { members });
-    
+
     // Combine results into single frame
     return new Frames({
-        ...originalFrame,
-        [userId]: frames[0][userId],
-        [items]: itemsFrames[0]?.[items] || [],
-        [members]: membersFrames[0]?.[members] || []
+      ...originalFrame,
+      [userId]: frames[0][userId],
+      [items]: itemsFrames[0]?.[items] || [],
+      [members]: membersFrames[0]?.[members] || []
     });
   },
   then: actions([
@@ -1269,8 +1269,8 @@ export const ViewCollectionRequest: Sync = ({
  * Request: POST /api/Collecting/addItem { token, collection, item }
  * Response: {}
  */
-export const AddItemToCollectionRequest: Sync = ({ 
-  request, token, collection, item, userId 
+export const AddItemToCollectionRequest: Sync = ({
+  request, token, collection, item, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -1311,8 +1311,8 @@ export const AddItemToCollectionError: Sync = ({ request, error }) => ({
  * Request: POST /api/Collecting/removeItem { token, collection, item }
  * Response: {}
  */
-export const RemoveItemFromCollectionRequest: Sync = ({ 
-  request, token, collection, item, userId 
+export const RemoveItemFromCollectionRequest: Sync = ({
+  request, token, collection, item, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -1353,8 +1353,8 @@ export const RemoveItemFromCollectionError: Sync = ({ request, error }) => ({
  * Request: POST /api/Collecting/addMember { token, collection, email }
  * Response: {}
  */
-export const AddMemberToCollectionRequest: Sync = ({ 
-  request, token, collection, email, currentUserId, newUserId 
+export const AddMemberToCollectionRequest: Sync = ({
+  request, token, collection, email, currentUserId, newUserId
 }) => ({
   when: actions([
     Requesting.request,
@@ -1396,8 +1396,8 @@ export const AddMemberToCollectionError: Sync = ({ request, error }) => ({
  * Request: POST /api/Collecting/removeMember { token, collection, user }
  * Response: {}
  */
-export const RemoveMemberFromCollectionRequest: Sync = ({ 
-  request, token, collection, user, currentUserId 
+export const RemoveMemberFromCollectionRequest: Sync = ({
+  request, token, collection, user, currentUserId
 }) => ({
   when: actions([
     Requesting.request,
@@ -1438,8 +1438,8 @@ export const RemoveMemberFromCollectionError: Sync = ({ request, error }) => ({
  * Request: POST /api/Collecting/leave { token, collection }
  * Response: {}
  */
-export const LeaveCollectionRequest: Sync = ({ 
-  request, token, collection, userId 
+export const LeaveCollectionRequest: Sync = ({
+  request, token, collection, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -1489,8 +1489,8 @@ export const LeaveCollectionError: Sync = ({ request, error }) => ({
  * Request: POST /api/Recipe/searchMyCollections { token, ingredientNames, titleQuery }
  * Response: { results }
  */
-export const SearchMyCollectionsRequest: Sync = ({ 
-  request, token, ingredientNames, titleQuery, userId, collections, collection, items, results 
+export const SearchMyCollectionsRequest: Sync = ({
+  request, token, ingredientNames, titleQuery, userId, collections, collection, items, results
 }) => ({
   when: actions([
     Requesting.request,
@@ -1499,29 +1499,29 @@ export const SearchMyCollectionsRequest: Sync = ({
   ]),
   where: async (frames) => {
     const originalFrame = frames[0];
-    
+
     // Authenticate
     frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
-    
+
     // Get all collections user is in
     frames = await frames.query(Collecting._getCollections, { user: userId }, { collections });
 
     const collectionsResult = frames[0][collections] as any;
-    
+
     if (!collectionsResult || !Array.isArray(collectionsResult) || collectionsResult.length === 0) {
       return new Frames({ ...originalFrame, [results]: [] });
     }
 
     // Create frames - one per collection
     const collectionFrames = collectionsResult.map((coll: any) => ({
-        ...originalFrame,
-        [userId]: frames[0][userId],
-        [collection]: coll._id
+      ...originalFrame,
+      [userId]: frames[0][userId],
+      [collection]: coll._id
     }));
-    
+
     frames = new Frames(...collectionFrames);
 
-    // Get items from each collection 
+    // Get items from each collection
     frames = await frames.query(Collecting._getItems, { collection, requestingUser: userId }, { items });
 
     // Collect all unique items across collections
@@ -1532,22 +1532,22 @@ export const SearchMyCollectionsRequest: Sync = ({
         itemsResult.forEach((item: any) => allItems.add(item));
       }
     });
-    
+
     if (allItems.size === 0) {
       return new Frames({ ...originalFrame, [results]: [] });
     }
-    
+
     // Search within these recipes
     const scopedRecipes = Array.from(allItems);
     const searchFrame = { ...originalFrame, [userId]: frames[0][userId] };
-    
+
     frames = new Frames(searchFrame);
     frames = await frames.query(
       Recipe._filterIngredientAndSearchWithinRecipes,
       { recipes: scopedRecipes, query: titleQuery, ingredients: ingredientNames },
       { recipes: results }
     );
-    
+
     return frames;
   },
   then: actions([
@@ -1560,7 +1560,7 @@ export const SearchMyCollectionsRequest: Sync = ({
  * Request: POST /api/Recipe/searchGlobalAuthenticated { token, ingredientNames, titleQuery }
  * Response: { results }
  */
-export const SearchGlobalAuthenticatedRequest: Sync = ({ 
+export const SearchGlobalAuthenticatedRequest: Sync = ({
   request, token, ingredientNames, titleQuery, userId, results, collections, collection, items
 }) => ({
   when: actions([
@@ -1570,52 +1570,52 @@ export const SearchGlobalAuthenticatedRequest: Sync = ({
   ]),
   where: async (frames) => {
     const originalFrame = frames[0];
-    
+
     // Authenticate
     frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
 
-    const authenticatedUserId = frames[0][userId]; 
-    
+    const authenticatedUserId = frames[0][userId];
+
     // Search globally
     frames = await frames.query(
       Recipe._filterIngredientAndSearch,
       { query: titleQuery, ingredients: ingredientNames },
       { recipes: results }
     );
-    
+
     const globalResults = frames[0][results] as any[];
-    
+
     if (!globalResults || globalResults.length === 0) {
-      return new Frames({ 
+      return new Frames({
         ...originalFrame,
         [userId]: authenticatedUserId,
-        [results]: [] 
+        [results]: []
       });
     }
-    
+
     // Get all items in user's collections
     const collectionsFrames = await new Frames({
       ...originalFrame,
       [userId]: authenticatedUserId
     }).query(
-      Collecting._getCollections, 
-      { user: userId }, 
+      Collecting._getCollections,
+      { user: userId },
       { collections }
     );
-    
+
     const collectionsArray = collectionsFrames[0][collections] as any;
     const userRecipeIds = new Set();
-    
+
     if (collectionsArray && Array.isArray(collectionsArray) && collectionsArray.length > 0) {
       const collectionFrames = collectionsArray.map((coll: any) => ({
         ...originalFrame,
-        [userId]: authenticatedUserId,  
+        [userId]: authenticatedUserId,
         [collection]: coll._id
       }));
-      
+
       let itemsFrames = new Frames(...collectionFrames);
       itemsFrames = await itemsFrames.query(Collecting._getItems, { collection, requestingUser: userId }, { items });
-      
+
       itemsFrames.forEach((frame: any) => {
         const itemsList = frame[items];
         if (itemsList && Array.isArray(itemsList)) {
@@ -1629,7 +1629,7 @@ export const SearchGlobalAuthenticatedRequest: Sync = ({
       _id: recipeId,
       inMyCollections: userRecipeIds.has(recipeId.toString())
     }));
-    
+
     return new Frames({ ...originalFrame, [results]: flaggedResults });
   },
   then: actions([

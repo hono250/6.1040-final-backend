@@ -87,6 +87,8 @@
   * `_getAllRecipes(owner: User): (recipes: List<Recipe>)`
 	* **requires** this `owner` exists in the set of `Recipes`
 	* **effects** returns all the `Recipe`s associated with this `owner`
+  * `_getAllRecipesGlobal(): (recipes: List<Recipe>)`
+	* **effects** returns all the `Recipe`s in the set of `Recipe`s
   * `_getIngredients(): (ingredients: List<Ingredient>)`
 	* **effects** returns all the `Ingredient`s in the set of `Ingredient`s
   * `_getIngredientsByName(name: String): (ingredients: List<Ingredient>)`

@@ -408,6 +408,8 @@ export default class RecipeConcept {
         }
         return true;
     }
+
+    
     async parseFromLink({ requestedBy, link, llm }: { requestedBy: User, link: string, llm?: GeminiLLM }): Promise<{ recipe: RecipeDoc } | { error: string }> {
         if (!this.isValidLink(link)) {
             return { error: "Invalid link" };
