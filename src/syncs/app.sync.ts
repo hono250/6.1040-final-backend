@@ -379,7 +379,7 @@ export const CreateRecipeError: Sync = ({ request, error }) => ({
  * Response: { recipe }
  */
 export const ParseFromLinkRequest: Sync = ({ 
-  request, token, link, userId, llm 
+  request, token, link, userId
 }) => ({
   when: actions([
     Requesting.request,
@@ -388,11 +388,10 @@ export const ParseFromLinkRequest: Sync = ({
   ]),
   where: async (frames) => {
     frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
-    // TODO: Get/create LLM instance or make it an optional parameter in recipe
     return frames;
   },
   then: actions([
-    Recipe.parseFromLink, { owner: userId, link, llm }
+    Recipe.parseFromLink, { owner: userId, link }
   ]),
 });
 
