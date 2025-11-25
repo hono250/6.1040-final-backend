@@ -324,7 +324,7 @@ export const CreateRecipeRequest: Sync = ({
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "/Recipe/createRecipe", token, title },  // Only require token + title
+    { path: "/Recipe/createRecipe", token, title, link, description }, 
     { request }
   ]),
   where: async (frames) => {
