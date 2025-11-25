@@ -27,15 +27,16 @@
 export const inclusions: Record<string, string> = {
   // User - public authentication
   "/api/UserAuthentication/login": "public - authenticate existing users",
-  
+
   // Recipe - public queries for browsing recipes
   "/api/Recipe/_getRecipe": "public - view any recipe by owner and title",
   "/api/Recipe/_search": "public - search recipes by title",
   "/api/Recipe/_findRecipeByIngredient": "public - search recipes by ingredients",
   "/api/Recipe/_filterIngredientAndSearch": "public - search recipes by title and ingredients",
   "/api/Recipe/_scaleIngredients": "public - scale recipe ingredients for viewing",
-  "/api/Recipe/_getIngredients" : "public - list all ingredients for search autocomplete",
-  "/api/Recipe/_getIngredientsByName" : "public - search ingredients by name for"
+  "/api/Recipe/_getIngredients": "public - list all ingredients for search autocomplete",
+  "/api/Recipe/_getIngredientsByName": "public - search ingredients by name for",
+  "/api/Recipe/_getAllRecipesGlobal": "public - view all recipes from any owner"
 };
 
 /**
@@ -69,7 +70,7 @@ export const exclusions: Array<string> = [
   "/api/Profile/updateDisplayName",
   "/api/Profile/deleteProfile",
   "/api/Profile/_getProfile",
-  
+
   // Recipe - all mutations and authenticated queries
   "/api/Recipe/createRecipe",
   "/api/Recipe/deleteRecipe",
@@ -100,7 +101,7 @@ export const exclusions: Array<string> = [
   "/api/Recipe/createIngredientHelper",
   "/api/Recipe/generateLLMPrompt",
   "/api/Recipe/validateLLMResponse",
-  
+
   // Collecting - all need authentication
   "/api/Collecting/create",
   "/api/Collecting/addMember",
@@ -118,5 +119,5 @@ export const exclusions: Array<string> = [
   //Collecting - internal system actions (used by syncs, not exposed to frontend)
   "/api/Collecting/leaveAllCollections",
   "/api/Collecting/removeItemSystemwide",
-  
+
 ];

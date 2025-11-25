@@ -333,14 +333,14 @@ export default class RecipeConcept {
 
     private generateLLMPrompt(link: string): string {
         return `
-        You are a helpful AI tool that extracts recipe information from a given link. You are only allowed to return data in the json formatted below, no other text. 
+        You are a helpful AI tool that extracts recipe information from a given link. You are only allowed to return data in the json formatted below, no other text.
 
         **IMPORTANT INSTRUCTION FOR VIDEO LINKS (e.g., YouTube):** If the provided link is to a video, you must **analyze the video content (transcription/summary)** to identify the recipe title, description, and list of ingredients. Do not simply state you cannot extract the data; instead, use the video's contents or description box to find the recipe details.
 
         You need to find the following details:
 
         RECIPE DETAILS:
-        - **Title**: The name of the recipe. 
+        - **Title**: The name of the recipe.
         - **Description**: A brief summary of the recipe. Summarize the description if it's long, and if there is no description, provide a short one based on the recipe.
         - **Ingredients**: A list of ingredients with their quantities and unit of measurements.
             - If an ingredient has no units (e.g., "7 limes"), use **""** (empty string) as the unit.
@@ -352,7 +352,7 @@ export default class RecipeConcept {
 
         Once you've extracted the data, you must format the output **EXACTLY** as JSON with the following structure:
         {
-            "title": "Recipe Title", 
+            "title": "Recipe Title",
             "description": "Brief description of the recipe.",
             "ingredients": [
                 {"name": "ingredient name", "quantity": number, "unit": "unit of measurement"},
@@ -401,16 +401,16 @@ export default class RecipeConcept {
             return false;
         }
         for (const ingred of responseJson.ingredients) {
-            if (!ingred.name || typeof ingred.quantity !== "number" || ingred.unit === undefined ) {
+            if (!ingred.name || typeof ingred.quantity !== "number" || ingred.unit === undefined) {
                 console.log("LLM response ingredient missing name, quantity, or unit");
                 return false;
             }
         }
         return true;
     }
-    async parseFromLink({requestedBy, link, llm}: {requestedBy: User, link: string, llm?: GeminiLLM}): Promise<{ recipe: RecipeDoc } | { error: string }> {
+    async parseFromLink({ requestedBy, link, llm }: { requestedBy: User, link: string, llm?: GeminiLLM }): Promise<{ recipe: RecipeDoc } | { error: string }> {
         if (!this.isValidLink(link)) {
-            return { error: "Invalid link"};
+            return { error: "Invalid link" };
         }
         if (llm === undefined) {
             const config = {
@@ -428,10 +428,10 @@ export default class RecipeConcept {
             try {
                 //Query LLM
                 llmResponse = await llm.executeLLM(prompt);
-                
+
                 // Extract JSON from response
                 llmResponse = llmResponse.substring(llmResponse.indexOf('{'), llmResponse.lastIndexOf('}') + 1);
-                
+
                 // Validate response
                 if (!this.validateLLMResponse(llmResponse)) {
                     console.log("Invalid LLM response:", llmResponse);
@@ -628,7 +628,7 @@ export default class RecipeConcept {
      *
      * **effects** returns all the `Recipes` that have this `query` in this `title`
      */
-    async _search({ query }: { query: string }): Promise<Array<{ recipes: Recipe[] } | { error: string }>> {
+    async _search({ query }: { query: string }): Promise<Array<{ recipes: RecipeDoc[] } | { error: string }>> {
         if (!query || query.trim().length === 0) {
             return [{ error: "Query shouldn't be empty" }];
         }
@@ -641,9 +641,7 @@ export default class RecipeConcept {
             })
             .toArray();
 
-        const recipeIds: Recipe[] = matchingRecipes.map((r) => r._id);
-
-        return [{ recipes: recipeIds }];
+        return [{ recipes: matchingRecipes }];
     }
 
     /**
@@ -847,8 +845,28 @@ export default class RecipeConcept {
                 .find({ owner })
                 .toArray();
             if (recipes.length === 0) {
-                return []; 
+                return [];
             }
+
+            return recipes.map(r => ({ recipe: r }));
+
+        } catch (err: any) {
+            return [{ error: `Failed to fetch recipes: ${err.message}` }];
+        }
+    }
+
+    /**
+     * _getAllRecipesGlobal(): (recipes: List<Recipe>)
+     *
+     * **requires** true
+     *
+     * **effects** returns all `Recipe`s
+     */
+    async _getAllRecipesGlobal(): Promise<Array<{ recipe: RecipeDoc } | { error: string }>> {
+        try {
+            const recipes: RecipeDoc[] = await this.recipes
+                .find({})
+                .toArray();
 
             return recipes.map(r => ({ recipe: r }));
 
