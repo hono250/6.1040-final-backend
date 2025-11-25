@@ -621,7 +621,7 @@ Deno.test("Actions: remaining methods (removeIngredient, link/description/image/
         const parseOk = await concept.parseIngredients({
             requestedBy: owner,
             recipe: recipeId,
-            ingredientsText: "100,g,Flour\n50,g,Sugar"
+            ingredientsText: "100, g, Flour\n 50, g, Sugar "
         });
         if ("error" in parseOk) throw new Error(parseOk.error);
         const [fetched] = await concept._getRecipe({ owner, title: "Remaining Actions Dish" });

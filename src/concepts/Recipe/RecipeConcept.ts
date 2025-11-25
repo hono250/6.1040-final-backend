@@ -496,7 +496,7 @@ export default class RecipeConcept {
      * parseIngredients(requestedBy: User, recipe: Recipe, ingredientsText: String)
      *
      * **requires** this `recipe` has an owner who is this `requestedBy`
-     *  ingredientsText must be line separated and in the format: "quantity,unit,name" for each line
+     *  ingredientsText must be line separated and in the format: "quantity, unit, name" for each line
      *
      * **effects** parses this `ingredientsText` into individual `Ingredient`s as part of this `recipe`'s `ingredients`
      */
@@ -515,8 +515,8 @@ export default class RecipeConcept {
             if (isNaN(quantity)) {
                 return { error: `Invalid quantity: ${parts[0]}` };
             }
-            const unit = parts[1];
-            const name = parts[2];
+            const unit = parts[1].trim();
+            const name = parts[2].trim();
             const newIngred = await this.createIngredientHelper(name, quantity, unit);
             createdIngredients.push(newIngred);
         }
