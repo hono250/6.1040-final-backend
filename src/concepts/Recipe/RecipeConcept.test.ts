@@ -674,7 +674,7 @@ Deno.test("llm feature: parseFromLink", async (t) => {
             const res = await concept.parseFromLink({
                 requestedBy: user,
                 link: "https://www.allrecipes.com/recipe/239896/crunchy-french-onion-chicken/",
-                llm: llm
+                // llm: llm
             });
             if ("error" in res) throw new Error(res.error);
             const recipe = res.recipe;

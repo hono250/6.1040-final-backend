@@ -408,10 +408,20 @@ export default class RecipeConcept {
         }
         return true;
     }
-    async parseFromLink({requestedBy, link, llm}: {requestedBy: User, link: string, llm: GeminiLLM}): Promise<{ recipe: RecipeDoc } | { error: string }> {
+    async parseFromLink({requestedBy, link, llm}: {requestedBy: User, link: string, llm?: GeminiLLM}): Promise<{ recipe: RecipeDoc } | { error: string }> {
         if (!this.isValidLink(link)) {
             return { error: "Invalid link"};
         }
+        if (llm === undefined) {
+            const config = {
+                apiKey: Deno.env.get("GEMINI_API_KEY") || "",
+            };
+            if (!config.apiKey) {
+                return { error: "Gemini API key not configured." };
+            }
+            llm = new GeminiLLM(config);
+        }
+
         let llmResponse = "";
         for (let attempt = 0; attempt < 3; attempt++) {
             const prompt = this.generateLLMPrompt(link);
