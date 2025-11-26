@@ -34,9 +34,11 @@
 **Alpha deadline**: 
 Changes: 
 - We split the User concept into a Profile and User concept to fit their two separate purposes. 
-- We planned to use the parseFromLink feature in beta, because we weren't sure if we had time to incorporate it for the alpha checkpoint, but we ended up finishing it for this deadline!
+- We planned to use the `parseFromLink` feature in beta, because we weren't sure if we had time to incorporate it for the alpha checkpoint, but we ended up finishing it for this deadline!
 - We added more actions to the Recipe concept so that it can search recipes by the list of ingredients, and search by the list of ingredients AND a list of recipes (so it's an additional step of filtering)
-- We added an additional query in the Recipes that gets all the recipes in the entire database to load in the Home page. 
+- We added an additional query in the Recipes that gets all the recipes in the entire database to load in the Home page.
+- We added a `leaveAllCollections` action to the Collecting concept to allow seamless account deletion.
+- We updated syncs to work with the new User/Profile/UserAuthentication concept split and new actions
 
 **Functional Design deadline**: 
 Our primary risk is time and scope. There is a chance that we will be unable to implement all of our features by the deadline, especially if unexpected difficulties arise. As such, we have divided our features into core features and additional features. Core features are the minimum set of features that are necessary to be implemented for our app to fulfill its purpose. These are all planned to be submitted by the alpha deadline. If any delays occur, then we should be able to push back the schedule and have them submitted by the beta deadline, at the expense of an additional feature. 
