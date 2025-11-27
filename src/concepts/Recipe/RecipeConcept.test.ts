@@ -407,7 +407,8 @@ Deno.test("Queries: Search, Filter, and Metadata", async (t) => {
         if ("error" in res) throw new Error(res.error);
 
         assertEquals(res.recipes.length, 2);
-        assertArrayIncludes(res.recipes, [carbId, tomatoId]);
+        const recipe_ids = res.recipes.map(recipe => recipe._id);
+        assertArrayIncludes(recipe_ids, [carbId, tomatoId]);
     });
 
     await t.step("4. _findRecipeByIngredient (Verification)", async () => {
@@ -693,7 +694,7 @@ Deno.test("llm feature: parseFromLink", async (t) => {
             });
             if ("error" in res) throw new Error(res.error);
             const recipe = res.recipe;
-            console.log(recipe)
+            // console.log(recipe)
             assertExists(recipe);
             assertEquals(recipe.title.toLowerCase().includes("pasta"), true);
             assertExists(recipe.description);
