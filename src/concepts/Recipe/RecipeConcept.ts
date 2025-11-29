@@ -319,7 +319,7 @@ export default class RecipeConcept {
      *
      * **requires** this `recipe` exists in the set of `Recipe`s
      *
-     * **effects** creates a new `recipe` with the same fields as this `recipe`, but this `owner` is now this `requestedBy`, changes `isCopy` of this `recipe` and the new `recipe` to True, returns this new recipe
+     * **effects** creates a new `recipe` with the same fields as this `recipe`, but this `owner` is now this `requestedBy`, changes `isCopy` of this `recipe` and the new `recipe` to True. Also sets the copy to private, and returns the new recipe
      */
     async copyRecipe({ requestedBy, recipe }: { requestedBy: User, recipe: Recipe }): Promise<{ recipe: Recipe } | { error: string }> {
         const existing = await this.recipes.findOne({ _id: recipe });
@@ -336,6 +336,7 @@ export default class RecipeConcept {
             description: existing.description ?? "",
             image: existing.image ?? "",
             isCopy: true,
+            isPublic: false,
         }
 
         await this.recipes.insertOne(newRecipe);
@@ -481,6 +482,7 @@ export default class RecipeConcept {
             ingredients: ingredients,
             link,
             isCopy: false,
+            isPublic: false,
         };
 
         await this.recipes.insertOne(newRecipe);
