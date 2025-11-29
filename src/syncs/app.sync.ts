@@ -320,11 +320,11 @@ export const DeleteAccountError: Sync = ({ request, error }) => ({
  * Response: { recipe }
  */
 export const CreateRecipeRequest: Sync = ({
-  request, token, title, link, description, userId
+  request, token, title, link, description, userId, isPublic
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "/Recipe/createRecipe", token, title, link, description },
+    { path: "/Recipe/createRecipe", token, title, link, description, isPublic },
     { request }
   ]),
   where: async (frames) => {
@@ -333,7 +333,7 @@ export const CreateRecipeRequest: Sync = ({
   },
   then: actions([
     // Pass ALL fields to createRecipe, it handles undefined values
-    Recipe.createRecipe, { owner: userId, title, link, description }
+    Recipe.createRecipe, { owner: userId, title, link, description, isPublic }
   ]),
 });
 
