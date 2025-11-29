@@ -821,6 +821,48 @@ export const DeleteRecipeImageError: Sync = ({ request, error }) => ({
 });
 
 /**
+ * Set Recipe Public
+ * Request: POST /api/Recipe/setPublic { token, recipe, isPublic }
+ * Response: {}
+ */
+export const SetRecipePublicRequest: Sync = ({
+  request, token, recipe, isPublic, userId
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/Recipe/setRecipePublic", token, recipe, isPublic },
+    { request }
+  ]),
+  where: async (frames) => {
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
+    return frames;
+  },
+  then: actions([
+    Recipe.setRecipePublic, { requestedBy: userId, recipe, isPublic }
+  ]),
+});
+
+export const SetRecipePublicResponse: Sync = ({ request }) => ({
+  when: actions(
+    [Requesting.request, { path: "/Recipe/setPublic" }, { request }],
+    [Recipe.setRecipePublic, {}, {}]
+  ),
+  then: actions([
+    Requesting.respond, { request }
+  ]),
+});
+
+export const SetRecipePublicError: Sync = ({ request, error }) => ({
+  when: actions(
+    [Requesting.request, { path: "/Recipe/setPublic" }, { request }],
+    [Recipe.setRecipePublic, {}, { error }]
+  ),
+  then: actions([
+    Requesting.respond, { request, error }
+  ]),
+});
+
+/**
  * Parse Ingredients
  * Request: POST /api/Recipe/parseIngredients { token, recipe, ingredientsText }
  * Response: { ingredients }

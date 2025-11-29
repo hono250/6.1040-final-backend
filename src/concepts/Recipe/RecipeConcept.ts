@@ -94,7 +94,7 @@ export default class RecipeConcept {
         }
 
         if (existing.owner !== requestedBy) {
-            return { error: "Sorry, you are not the owner of this recipe. You cannot delete the recipe." };
+            return { error: "Sorry, you are not the owner of this recipe. You cannot edit the recipe." };
         }
         return existing;
     }
