@@ -13,6 +13,7 @@
     * an optional `link` `String`
     * an optional `description` String
     * an `isCopy` `flag`
+    * an `isPublic` `flag`
   * a set of `Ingredients` with
     * a `quantity` `number`
     * a `name` `String`
@@ -45,6 +46,9 @@
   * `setRecipeCopy(requestedBy: User, recipe: Recipe, isCopy: flag)`
 	* **requires** this `recipe` has an owner who is this `requestedBy`
 	* **effects** sets the `isCopy` in this `recipe` to this `isCopy`
+  * `setRecipePublic(requestedBy: User, recipe: Recipe, isPublic: flag)`
+	* **requires** this `recipe` has an owner who is this `requestedBy`
+	* **effects** sets the `isPublic` in this `recipe` to this `isPublic`
   * `setImage(requestedBy: User, recipe: Recipe, image: String)`
 	* **requires** this `recipe` has an owner who is this `requestedBy`
 	* **effects** sets the `image` in this `recipe` to this `image`
@@ -88,7 +92,7 @@
 	* **requires** this `owner` exists in the set of `Recipes`
 	* **effects** returns all the `Recipe`s associated with this `owner`
   * `_getAllRecipesGlobal(): (recipes: List<Recipe>)`
-	* **effects** returns all the `Recipe`s in the set of `Recipe`s
+	* **effects** returns all the public `Recipe`s in the set of `Recipe`s 
   * `_getIngredients(): (ingredients: List<Ingredient>)`
 	* **effects** returns all the `Ingredient`s in the set of `Ingredient`s
   * `_getIngredientsByName(name: String): (ingredients: List<Ingredient>)`

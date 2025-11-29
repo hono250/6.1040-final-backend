@@ -10,7 +10,7 @@ type User = ID;
 type Ingredient = ID;
 type Recipe = ID;
 
-interface RecipeDoc {
+export interface RecipeDoc {
     _id: Recipe;
     owner: User;
     title: string,
@@ -19,9 +19,10 @@ interface RecipeDoc {
     link?: string;
     description: string;
     isCopy: boolean;
+    isPublic?: boolean;
 }
 
-interface IngredientDoc {
+export interface IngredientDoc {
     _id: Ingredient,
     quantity: number;
     name: string;
@@ -55,7 +56,7 @@ export default class RecipeConcept {
      *
      * **effects** creates a new `Recipe` with this `owner`, this `title`, and (this `link` or this `description`), returns this recipe
      */
-    async createRecipe({ owner, title, link, description }: { owner: User, title: string, link?: string, description?: string }): Promise<{ recipe: Recipe } | { error: string }> {
+    async createRecipe({ owner, title, link, description, isPublic }: { owner: User, title: string, link?: string, description?: string, isPublic?: boolean }): Promise<{ recipe: Recipe } | { error: string }> {
         const existing = await this.recipes.findOne({ owner, title });
 
         if (existing) {
@@ -78,6 +79,7 @@ export default class RecipeConcept {
             link: link ?? "",
             description: description ?? "",
             isCopy: false,
+            isPublic: isPublic ?? false,
         }
 
         await this.recipes.insertOne(newRecipe);
@@ -259,6 +261,21 @@ export default class RecipeConcept {
         if ("error" in existing) return { error: existing.error };
 
         await this.recipes.updateOne({ _id: recipe }, { $set: { isCopy } });
+        return {};
+    }
+
+    /**
+     * setRecipePublic(requestedBy: User, recipe: Recipe, isPublic: flag)
+     *
+     * **requires** this `recipe` has an owner who is this `requestedBy`
+     *
+     * **effects** sets the `isPublic` in this `recipe` to this `isPublic`
+     */
+    async setRecipePublic({ requestedBy, recipe, isPublic }: { requestedBy: User, recipe: Recipe, isPublic: boolean }): Promise<Empty | { error: string }> {
+        const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
+        if ("error" in existing) return { error: existing.error };
+
+        await this.recipes.updateOne({ _id: recipe }, { $set: { isPublic } });
         return {};
     }
 
@@ -862,12 +879,12 @@ export default class RecipeConcept {
      *
      * **requires** true
      *
-     * **effects** returns all `Recipe`s
+     * **effects** returns all `Recipe`s that are public
      */
     async _getAllRecipesGlobal(): Promise<Array<{ recipe: RecipeDoc } | { error: string }>> {
         try {
             const recipes: RecipeDoc[] = await this.recipes
-                .find({})
+                .find({ isPublic: true })
                 .toArray();
 
             return recipes.map(r => ({ recipe: r }));

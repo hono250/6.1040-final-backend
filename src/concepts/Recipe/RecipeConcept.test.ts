@@ -8,6 +8,8 @@ import { testDb } from "@utils/database.ts";
 import { ID } from "@utils/types.ts";
 
 import RecipeConcept from "./RecipeConcept.ts";
+import { RecipeDoc } from "./RecipeConcept.ts";
+
 import { GeminiLLM, Config } from "@utils/gemini-llm.ts";
 
 /**
@@ -43,7 +45,8 @@ Deno.test("Principle: a user adds a recipe with the name of the dish, the ingred
         const recipeData = {
             owner: aliceUser,
             title: "Spaghetti Carbonara",
-            description: "1. Boil pasta. 2. Fry pancetta. 3. Mix eggs and cheese. Combine off heat."
+            description: "1. Boil pasta. 2. Fry pancetta. 3. Mix eggs and cheese. Combine off heat.",
+            isPublic: true
         };
 
         const createResult = await concept.createRecipe(recipeData);
@@ -663,6 +666,8 @@ Deno.test("Actions: remaining methods (removeIngredient, link/description/image/
     });
 });
 
+
+
 Deno.test("llm feature: parseFromLink", async (t) => {
     const [db, client] = await testDb();
     const concept = new RecipeConcept(db);
@@ -712,4 +717,69 @@ Deno.test("llm feature: parseFromLink", async (t) => {
     } finally {
         await client.close();
     }
+});
+
+Deno.test("Global vs private recipes", async (t) => {
+    const [db, client] = await testDb();
+    const concept = new RecipeConcept(db);
+    const userA = "user_global_A" as ID;
+    // const userB = "user_global_B" as ID;
+    let publicRecipeId: ID;
+    await t.step("1. Create public and private recipes", async () => {
+        const pubRes = await concept.createRecipe({
+            owner: userA,
+            title: "Public Recipe",
+            description: "This is a public recipe.",
+            isPublic: true
+        });
+        if ("error" in pubRes) throw new Error(pubRes.error);
+        publicRecipeId = pubRes.recipe;
+        
+        const privRes = await concept.createRecipe({
+            owner: userA,
+            title: "Private Recipe",
+            description: "This is a private recipe.",
+            isPublic: false
+        });
+        if ("error" in privRes) throw new Error(privRes.error);
+    });
+
+    await t.step("2. Test that only public recipe is visible globally", async () => {
+        const res: Array<{recipe: RecipeDoc} | { error: string }> = await concept._getAllRecipesGlobal();
+        if (res.some(r => "error" in r)) throw new Error("Error fetching global recipes");
+        
+        const recipes: ID[] = (res as Array<{recipe: RecipeDoc}>).map(r => r.recipe._id);
+
+        assertEquals(recipes.length, 1);
+        assertArrayIncludes(recipes, [publicRecipeId]);
+        
+    });
+
+    await t.step("3. Test that only the owner can set the public recipe to private", async () => {
+        const otherUser = "user_global_other" as ID;
+        const failRes = await concept.setRecipePublic({
+            requestedBy: otherUser,
+            recipe: publicRecipeId,
+            isPublic: false
+        });
+        if (!("error" in failRes)) throw new Error("Expected error when non-owner tries to change publicity");
+
+        const successRes = await concept.setRecipePublic({
+            requestedBy: userA,
+            recipe: publicRecipeId,
+            isPublic: false
+        });
+        if ("error" in successRes) throw new Error(successRes.error);
+    });
+
+    await t.step("4. Verify recipe is no longer public", async () => {
+        const res: Array<{recipe: RecipeDoc} | { error: string }> = await concept._getAllRecipesGlobal();
+        if (res.some(r => "error" in r)) throw new Error("Error fetching global recipes");
+        const recipes: ID[] = (res as Array<{recipe: RecipeDoc}>).map(r => r.recipe._id);
+
+        assertEquals(recipes.length, 0);
+    });
+
+
+    await client.close();
 });
