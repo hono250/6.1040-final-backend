@@ -83,6 +83,7 @@ export const exclusions: Array<string> = [
   "/api/Recipe/setRecipeCopy",
   "/api/Recipe/setImage",
   "/api/Recipe/deleteImage",
+  "/api/Recipe/setRecipePublic",
   "/api/Recipe/copyRecipe",
   "/api/Recipe/parseIngredients",
   "/api/Recipe/createIngredient",
