@@ -8,7 +8,7 @@ const userBob = "user:Bob" as ID;
 const userCharlie = "user:Charlie" as ID;
 const item1 = "item:Recipe1" as ID;
 const item2 = "item:Recipe2" as ID;
-const item3 = "item:Recipe3" as ID;
+
 
 Deno.test("Operational Principle: Create collection, add members and items, members can access", async () => {
   const [db, client] = await testDb();
@@ -757,12 +757,12 @@ Deno.test("Query: _getCollectionsWithItemStatus shows correct item status", asyn
     });
 
     // Get status for item1
-    const statusResult = await collectingConcept._getCollectionsWithItemStatus(
-      {
-        user: userAlice,
-        item: item1,
-      },
-    );
+    const result = await collectingConcept._getCollectionsWithItemStatus({
+      user: userAlice,
+      item: item1,
+    });
+
+    const statusResult = result[0].collectionsWithStatus;
 
     assertEquals(
       statusResult.length,
@@ -770,12 +770,8 @@ Deno.test("Query: _getCollectionsWithItemStatus shows correct item status", asyn
       "Should return status for 2 collections.",
     );
 
-    const collection1Status = statusResult.find((s) =>
-      s.collection._id === collection1
-    );
-    const collection2Status = statusResult.find((s) =>
-      s.collection._id === collection2
-    );
+    const collection1Status = statusResult.find((s) => s._id === collection1);
+    const collection2Status = statusResult.find((s) => s._id === collection2);
 
     assertEquals(
       collection1Status?.hasItem,
