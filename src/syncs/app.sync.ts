@@ -80,36 +80,6 @@ export const RegisterProfileError: Sync = ({ request, error }) => ({
   ]),
 });
 
-/**
- * Get Profile (authenticated)
- * Request: POST /api/Profile/getProfile { token }
- * Response: { profile }
- */
-export const GetProfileRequest: Sync = ({
-  request, token, userId, profile
-}) => ({
-  when: actions([
-    Requesting.request,
-    { path: "/Profile/getProfile", token },
-    { request }
-  ]),
-  where: async (frames) => {
-    const originalFrame = frames[0];
-    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
-    frames = await frames.query(Profile._getProfile, { userId }, { profile });
-
-    // Handle error case
-    const profileResult = frames[0][profile] as any;
-    if (profileResult?.error) {
-      return new Frames({ ...originalFrame, error: profileResult.error });
-    }
-
-    return frames;
-  },
-  then: actions([
-    Requesting.respond, { request, profile }
-  ]),
-});
 
 /**
  * Logout
@@ -822,7 +792,7 @@ export const DeleteRecipeImageError: Sync = ({ request, error }) => ({
 
 /**
  * Set Recipe Public
- * Request: POST /api/Recipe/setPublic { token, recipe, isPublic }
+ * Request: POST /api/Recipe/setRecipePublic { token, recipe, isPublic }
  * Response: {}
  */
 export const SetRecipePublicRequest: Sync = ({

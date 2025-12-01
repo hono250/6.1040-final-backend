@@ -28,6 +28,9 @@ export const inclusions: Record<string, string> = {
   // User - public authentication
   "/api/UserAuthentication/login": "public - authenticate existing users",
 
+  // Profile - public query for display names
+  "/api/Profile/_getProfile": "public - get user's display name for showing in collections",
+
   // Recipe - public queries for browsing recipes
   "/api/Recipe/_getRecipe": "public - view any recipe by owner and title",
   "/api/Recipe/_search": "public - search recipes by title",
@@ -69,7 +72,6 @@ export const exclusions: Array<string> = [
   "/api/Profile/createProfile",
   "/api/Profile/updateDisplayName",
   "/api/Profile/deleteProfile",
-  "/api/Profile/_getProfile",
 
   // Recipe - all mutations and authenticated queries
   "/api/Recipe/createRecipe",
