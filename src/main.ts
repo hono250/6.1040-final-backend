@@ -8,10 +8,11 @@ import * as concepts from "@concepts";
 // Use the following line instead to run against the test database, which resets each time.
 // import * as concepts from "@test-concepts";
 
-const { Engine } = concepts;
+const { Engine, db, User, Recipe } = concepts;
 import { Logging } from "@engine";
 import { startRequestingServer } from "@concepts/Requesting/RequestingConcept.ts";
 import syncs from "@syncs";
+import { seedDatabase } from "./seed.ts";
 
 /**
  * Available logging levels:
@@ -23,6 +24,9 @@ Engine.logging = Logging.TRACE;
 
 // Register synchronizations
 Engine.register(syncs);
+
+// Seed database with MealDB recipes (only runs once)
+await seedDatabase(db, User, Recipe);
 
 // Start a server to provide the Requesting concept with external/system actions.
 startRequestingServer(concepts);
