@@ -409,7 +409,7 @@ export default class RecipeConcept {
         return true;
     }
 
-    
+
     async parseFromLink({ requestedBy, link, llm }: { requestedBy: User, link: string, llm?: GeminiLLM }): Promise<{ recipe: RecipeDoc } | { error: string }> {
         if (!this.isValidLink(link)) {
             return { error: "Invalid link" };
@@ -598,31 +598,69 @@ export default class RecipeConcept {
      *
      * **effects** returns all the `Recipes` that have these `ingredients` (which are the food names), where the initial recipes are the ones that have the most ingredients in these `ingredients`
      */
-    async _findRecipeByIngredient({ ingredients }: { ingredients: string[] }): Promise<Array<{ recipes: Recipe[] } | { error: string }>> {
+    async _findRecipeByIngredient({ ingredients }: { ingredients: string[] }): Promise<Array<{ recipes: RecipeDoc[] } | { error: string }>> {
         if (!ingredients || ingredients.length === 0) {
             return [{ error: "Ingredients list cannot be empty." }];
         }
 
-        const normalized = ingredients.map((i) => i.toLowerCase());
+        const regexIngredients = ingredients.map(ing => new RegExp(ing, 'i'));
+        // Normalize input for the loop
+        const normalizedInputs = ingredients.map((i) => i.toLowerCase());
+
+        // Fetch ALL recipes, then filter in JavaScript to find ANY ingredient matches
         const allRecipes = await this.recipes.find({}).toArray();
-        // filter recipes by amount of ingredients matched
+
+        
+        // Score recipes by matching ingredients
         const scored = allRecipes
             .map((recipe: RecipeDoc) => {
-                const matchCount = recipe.ingredients.filter((ingred: IngredientDoc) =>
-                    normalized.includes(ingred.name.toLowerCase())
-                ).length;
-                return { recipe, matchCount };
-            })
-            .filter((entry: { recipe: RecipeDoc; matchCount: number }) => entry.matchCount > 0); // keep recipes that actually have ingredients
+                // Count how many UNIQUE search terms are matched (not ingredient instances)
+                const matchedTerms = new Set<string>();
+                recipe.ingredients.forEach((ingred: IngredientDoc) => {
+                    const dbIngredientName = ingred.name.toLowerCase();
+                    normalizedInputs.forEach(input => {
+                        if (dbIngredientName.includes(input)) {
+                            matchedTerms.add(input);
+                        }
+                    });
+                });
 
-        // none found
+                // Primary sort: number of unique search terms matched
+                const uniqueTermsMatched = matchedTerms.size;
+
+                // Secondary sort: total number of ingredient instances matched
+                const totalInstancesMatched = recipe.ingredients.filter((ingred: IngredientDoc) => {
+                    const dbIngredientName = ingred.name.toLowerCase();
+                    return normalizedInputs.some(input => dbIngredientName.includes(input));
+                }).length;
+
+                return { recipe, uniqueTermsMatched, totalInstancesMatched };
+            })
+            .filter((entry) => entry.uniqueTermsMatched > 0);
+
+        scored.slice(0, 5).forEach(entry => {
+            console.log(`  - "${entry.recipe.title}": uniqueTerms = ${entry.uniqueTermsMatched}, totalInstances = ${entry.totalInstancesMatched}, ingredients = ${entry.recipe.ingredients.map(i => i.name).join(', ')}`);
+        });
+
         if (scored.length === 0) {
             return [{ recipes: [] }];
         }
-        scored.sort((a: { recipe: RecipeDoc; matchCount: number }, b: { recipe: RecipeDoc; matchCount: number }) => b.matchCount - a.matchCount);
-        const sortedRecipeIds = scored.map((entry: { recipe: RecipeDoc; matchCount: number }) => entry.recipe._id);
 
-        return [{ recipes: sortedRecipeIds }];
+        // Sort by unique terms matched (descending), then by total instances (descending)
+        scored.sort((a, b) => {
+            if (b.uniqueTermsMatched !== a.uniqueTermsMatched) {
+                return b.uniqueTermsMatched - a.uniqueTermsMatched;
+            }
+            return b.totalInstancesMatched - a.totalInstancesMatched;
+        });
+
+        scored.slice(0, 5).forEach(entry => {
+            console.log(`  - "${entry.recipe.title}": uniqueTerms = ${entry.uniqueTermsMatched}, totalInstances = ${entry.totalInstancesMatched}, ingredients = ${entry.recipe.ingredients.map(i => i.name).join(', ')}`);
+        });
+
+        const sortedRecipes = scored.map((entry) => entry.recipe);
+
+        return [{ recipes: sortedRecipes }];
     }
 
     /**
@@ -660,7 +698,7 @@ export default class RecipeConcept {
             return [{ recipes: [] }];
         }
 
-        const normalized = ingredients.map((i) => i.toLowerCase());
+        const normalizedInputs = ingredients.map((i) => i.toLowerCase());
 
         const recipeDocs: RecipeDoc[] = await this.recipes
             .find({ _id: { $in: recipes } })
@@ -668,9 +706,11 @@ export default class RecipeConcept {
 
         const scored = recipeDocs
             .map((recipe: RecipeDoc) => {
-                const matchCount = recipe.ingredients.filter((ingred: IngredientDoc) =>
-                    normalized.includes(ingred.name.toLowerCase())
-                ).length;
+                const matchCount = recipe.ingredients.filter((ingred: IngredientDoc) => {
+                    const dbIngredientName = ingred.name.toLowerCase();
+                    // Use substring matching to find any combination
+                    return normalizedInputs.some(input => dbIngredientName.includes(input));
+                }).length;
                 return { recipe, matchCount };
             })
             .filter((entry: { recipe: RecipeDoc; matchCount: number }) => entry.matchCount > 0); // keep recipes that actually have ingredients
@@ -718,39 +758,75 @@ export default class RecipeConcept {
      *
      * **effects** returns all the `Recipes` that have this `query` in this `title` and these `ingredients`, where the initial recipes are the ones that have the most ingredients in these `ingredients`
      */
-    async _filterIngredientAndSearch({ query, ingredients }: { query: string, ingredients: string[] }): Promise<Array<{ recipes: Recipe[] } | { error: string }>> {
-        if (!query || query.trim().length === 0) {
-            return [{ error: "Query cannot be empty." }];
-        }
-        if (!ingredients || ingredients.length === 0) {
-            return [{ error: "Ingredients list cannot be empty." }];
-        }
+    // async _filterIngredientAndSearch({ query, ingredients }: { query: string, ingredients: string[] }): Promise<Array<{ recipes: Recipe[] } | { error: string }>> {
+    //     if (!query || query.trim().length === 0) {
+    //         return [{ error: "Query cannot be empty." }];
+    //     }
+    //     if (!ingredients || ingredients.length === 0) {
+    //         return [{ error: "Ingredients list cannot be empty." }];
+    //     }
 
-        const normalizedQuery = query.toLowerCase();
-        const normalizedIngredients = ingredients.map((i) => i.toLowerCase());
+    //     const normalizedQuery = query.toLowerCase();
+    //     const normalizedIngredients = ingredients.map((i) => i.toLowerCase());
 
-        // Fetch all recipes that match the query in the title
+    //     const regexIngredients = ingredients.map(ing => new RegExp(ing, 'i'));
+
+    //     // Fetch all recipes that match the query in the title
+    //     const recipeDocs: RecipeDoc[] = await this.recipes
+    //         .find({
+    //             title: { $regex: normalizedQuery, $options: "i" },
+    //             "ingredients.name": { $in: regexIngredients }
+    //         })
+    //         .toArray();
+
+    //     const scored = recipeDocs
+    //         .map((recipe) => {
+    //             const matchCount = recipe.ingredients.filter((ingred) =>
+    //                 normalizedIngredients.includes(ingred.name.toLowerCase())
+    //             ).length;
+
+    //             return { recipe, matchCount };
+    //         })
+    //         .filter((entry) => entry.matchCount > 0); // keep only matches
+
+    //     scored.sort((a, b) => b.matchCount - a.matchCount);
+
+    //     const sortedIds: Recipe[] = scored.map((entry) => entry.recipe._id);
+
+    //     return [{ recipes: sortedIds }];
+    // }
+    async _filterIngredientAndSearch({ query, ingredients }: { query: string, ingredients: string[] }): Promise<Array<{ recipes: RecipeDoc[] } | { error: string }>> {
+        if (!query || query.trim().length === 0) return [{ error: "Query cannot be empty." }];
+        if (!ingredients || ingredients.length === 0) return [{ error: "Ingredients list cannot be empty." }];
+
+        const regexIngredients = ingredients.map(ing => new RegExp(ing, 'i'));
+        const normalizedInputs = ingredients.map((i) => i.toLowerCase());
+
+        // Fetch recipes matching title, then filter ingredients in JavaScript
         const recipeDocs: RecipeDoc[] = await this.recipes
             .find({
-                title: { $regex: normalizedQuery, $options: "i" },
+                title: { $regex: query.toLowerCase(), $options: "i" }
             })
             .toArray();
 
         const scored = recipeDocs
             .map((recipe) => {
-                const matchCount = recipe.ingredients.filter((ingred) =>
-                    normalizedIngredients.includes(ingred.name.toLowerCase())
-                ).length;
+                const matchCount = recipe.ingredients.filter((ingred) => {
+                    const dbIngredientName = ingred.name.toLowerCase();
+
+                    // FIX: Partial match check
+                    return normalizedInputs.some(input => dbIngredientName.includes(input));
+                }).length;
 
                 return { recipe, matchCount };
             })
-            .filter((entry) => entry.matchCount > 0); // keep only matches
+            .filter((entry) => entry.matchCount > 0);
 
         scored.sort((a, b) => b.matchCount - a.matchCount);
 
-        const sortedIds: Recipe[] = scored.map((entry) => entry.recipe._id);
+        const sortedRecipes = scored.map((entry) => entry.recipe);
 
-        return [{ recipes: sortedIds }];
+        return [{ recipes: sortedRecipes }];
     }
 
     /**
@@ -778,22 +854,27 @@ export default class RecipeConcept {
         }
 
         const normalizedQuery = query.toLowerCase();
-        const normalizedIngredients = ingredients.map((i) => i.toLowerCase());
+        const normalizedInputs = ingredients.map((i) => i.toLowerCase());
 
-        // Fetch only the recipes in the provided list that match the title query
+        const regexIngredients = ingredients.map(ing => new RegExp(ing, 'i'));
+
+
+        // Fetch recipes matching title and ID, then filter ingredients in JavaScript
         const recipeDocs: RecipeDoc[] = await this.recipes
             .find({
                 _id: { $in: recipes },
-                title: { $regex: normalizedQuery, $options: "i" },
+                title: { $regex: normalizedQuery, $options: "i" }
             })
             .toArray();
 
         // Score recipes by number of matching ingredients
         const scored = recipeDocs
             .map((recipe) => {
-                const matchCount = recipe.ingredients.filter((ingred) =>
-                    normalizedIngredients.includes(ingred.name.toLowerCase())
-                ).length;
+                const matchCount = recipe.ingredients.filter((ingred) => {
+                    const dbIngredientName = ingred.name.toLowerCase();
+                    // Use substring matching to find any combination
+                    return normalizedInputs.some(input => dbIngredientName.includes(input));
+                }).length;
                 return { recipe, matchCount };
             })
             .filter((entry) => entry.matchCount > 0);
