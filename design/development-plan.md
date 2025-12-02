@@ -26,10 +26,24 @@
 | Implement frontend functionality                     | Everyone                                                       |
 | Stylize + improve frontend usability                 | Everyone sits together to find problems / improvements         |
 | User Testing                                         | Everyone                                                       |
-| Incorporating feedback/insights from user testing    | Everyone <br>(individual tasks TBD)                            |
+| Incorporating feedback/insights from user testing    | Everyone                          |
 **Updated notes**: We changed the roles of who implemented what concepts and tests in the backend. Everyone worked on the frontend on Monday and Tuesday. 
 
 ## Key Risks and Changes
+
+**Beta deadline**
+
+Adjustments:
+- We focused on ingredient-based search rather than full pantry tracking (receipt scanning and expiration tracking deferred based on TA guidance and peer feedback)
+- We added ingredient chips, hardcoded by category (instead of dynamically generated from recipe data). We think including all ingredients could overwhelm users since they would still need to search through long lists. We've added added a commony wasted ingredients section to emphasize our goal of reducing food waste.
+- We implemented private vs public recipes with `isPublic` flag (added privacy controls beyond initial plan)
+- We made `_getProfile` publically accessible for collection member display names
+
+Features deferred to final:
+- Scaling recipes
+- Recipe organization/tags  
+- Ingredient substitutions
+- Progress tracking
 
 **Alpha deadline**: 
 Changes: 
