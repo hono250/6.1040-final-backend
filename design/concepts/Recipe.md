@@ -25,6 +25,9 @@
   * `deleteRecipe(requestedBy: User, recipe: Recipe)`
 	  * **requires** this `recipe` has an owner who is this `requestedBy`
 	  * **effects** removes this `recipe` from the set of `Recipe`s
+  * `setTitle(requestedBy: User, recipe: Recipe, title: String)`
+	  * **requires** this `recipe` has an owner who is this `requestedBy`, this `title` doesn't exist in this `requestedBy`'s set of recipes
+	  * **effects** updates this `recipe` to have this `title`
   * `addIngredientToRecipe(requestedBy: User, recipe: Recipe, ingredient: Ingredient)`
 	  * **requires** this `recipe` has an owner who is this `requestedBy`, this `ingredient` isn't already in that `Recipe`
 	  * **effects** adds this `ingredient` to the `Recipe` with this `owner` and this `title`

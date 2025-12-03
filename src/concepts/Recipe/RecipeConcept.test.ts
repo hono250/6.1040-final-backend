@@ -21,7 +21,7 @@ function loadConfig(): Config {
         if (!apikey) {
             throw new Error("GEMINI_API_KEY environment variable is not set");
         }
-        const config = { apiKey: apikey};
+        const config = { apiKey: apikey };
         return config;
     } catch (error) {
         console.error('❌ Error loading config.json. Please ensure it exists with your API key.');
@@ -107,15 +107,26 @@ Deno.test("Principle: a user adds a recipe with the name of the dish, the ingred
     });
 
     await t.step("4. search for recipes with ingredients", async () => {
+        // --- Test 1: Single Ingredient ---
         const [searchResult] = await concept._findRecipeByIngredient({ ingredients: ["Spaghetti"] });
 
         if ("error" in searchResult) throw new Error(searchResult.error);
-        assertArrayIncludes(searchResult.recipes, [recipeId], "Should find recipe via Spaghetti");
 
+        // FIX: Map the array of Objects to an array of ID Strings
+        const foundIds = searchResult.recipes.map(r => r._id);
+
+        assertArrayIncludes(foundIds, [recipeId], "Should find recipe via Spaghetti");
+
+
+        // --- Test 2: Multiple Ingredients ---
         const [multiSearchResult] = await concept._findRecipeByIngredient({ ingredients: ["Pancetta", "Eggs"] });
 
         if ("error" in multiSearchResult) throw new Error(multiSearchResult.error);
-        assertArrayIncludes(multiSearchResult.recipes, [recipeId], "Should find recipe via Pancetta and Eggs");
+
+        // FIX: Map the array of Objects to an array of ID Strings
+        const multiFoundIds = multiSearchResult.recipes.map(r => r._id);
+
+        assertArrayIncludes(multiFoundIds, [recipeId], "Should find recipe via Pancetta and Eggs");
     });
 
     await client.close();
@@ -218,7 +229,7 @@ Deno.test("Actions: createRecipe, deleteRecipe", async (t) => {
         });
 
         if (!("error" in result)) throw new Error("Should have failed to delete someone else's recipe");
-        assertEquals(result.error, "Sorry, you are not the owner of this recipe. You cannot delete the recipe.");
+        assertEquals(result.error, "Sorry, you are not the owner of this recipe. You cannot edit the recipe.");
     });
 
     await t.step("7. Failure: Imposter deletes recipe that doesn't exist", async () => {
@@ -419,7 +430,10 @@ Deno.test("Queries: Search, Filter, and Metadata", async (t) => {
         if ("error" in res) throw new Error(res.error);
 
         assertEquals(res.recipes.length, 2);
-        assertArrayIncludes(res.recipes, [carbId, breakfastId]);
+
+        const foundIds = res.recipes.map(r => r._id);
+
+        assertArrayIncludes(foundIds, [carbId, breakfastId]);
     });
 
     await t.step("5. _searchWithinRecipes (Subset Constraint)", async () => {
@@ -455,7 +469,7 @@ Deno.test("Queries: Search, Filter, and Metadata", async (t) => {
 
         if ("error" in res) throw new Error(res.error);
         assertEquals(res.recipes.length, 1);
-        assertEquals(res.recipes[0], carbId);
+        assertEquals(res.recipes[0]._id, carbId);
     });
 
     await t.step("8. _filterIngredientAndSearchWithinRecipes", async () => {
@@ -515,9 +529,9 @@ Deno.test("Actions: remaining methods (removeIngredient, link/description/image/
     // Shared IDs for steps
     let recipeId: ID;
     let parsleyId: ID;
-    let newRecipeId: ID;
     let delId: ID;
     let editId: ID;
+    let newRecipeId: ID;
 
     await t.step("setup: create recipe and ingredient", async () => {
         const createR = await concept.createRecipe({ owner, title: "Remaining Actions Dish", description: "initial desc" });
@@ -535,12 +549,12 @@ Deno.test("Actions: remaining methods (removeIngredient, link/description/image/
         if ("error" in fetched) throw new Error(fetched.error);
         assertEquals(fetched.recipes[0].ingredients.length, 1);
     });
-    
+
     await t.step("addIngredientToRecipe: failure when already present", async () => {
         const result = await concept.addIngredientToRecipe({ requestedBy: owner, recipe: recipeId, ingredient: parsleyId });
         if ("error" in result) throw new Error(result.error);
     });
-    
+
 
     await t.step("removeIngredientFromRecipe: success", async () => {
         const remOk = await concept.removeIngredientFromRecipe({ requestedBy: owner, recipe: recipeId, ingredient: parsleyId });
@@ -555,7 +569,7 @@ Deno.test("Actions: remaining methods (removeIngredient, link/description/image/
         if (!("error" in remFail)) throw new Error("Expected error removing non-existent ingredient");
     });
 
-    
+
     await t.step("add/remove ingredient: non-owner failures", async () => {
         const addFail = await concept.addIngredientToRecipe({ requestedBy: other, recipe: recipeId, ingredient: parsleyId });
         if (!("error" in addFail)) throw new Error("Expected error adding ingredient by non-owner");
@@ -734,7 +748,7 @@ Deno.test("Global vs private recipes", async (t) => {
         });
         if ("error" in pubRes) throw new Error(pubRes.error);
         publicRecipeId = pubRes.recipe;
-        
+
         const privRes = await concept.createRecipe({
             owner: userA,
             title: "Private Recipe",
@@ -745,14 +759,14 @@ Deno.test("Global vs private recipes", async (t) => {
     });
 
     await t.step("2. Test that only public recipe is visible globally", async () => {
-        const res: Array<{recipe: RecipeDoc} | { error: string }> = await concept._getAllRecipesGlobal();
+        const res: Array<{ recipe: RecipeDoc } | { error: string }> = await concept._getAllRecipesGlobal();
         if (res.some(r => "error" in r)) throw new Error("Error fetching global recipes");
-        
-        const recipes: ID[] = (res as Array<{recipe: RecipeDoc}>).map(r => r.recipe._id);
+
+        const recipes: ID[] = (res as Array<{ recipe: RecipeDoc }>).map(r => r.recipe._id);
 
         assertEquals(recipes.length, 1);
         assertArrayIncludes(recipes, [publicRecipeId]);
-        
+
     });
 
     await t.step("3. Test that only the owner can set the public recipe to private", async () => {
@@ -773,13 +787,88 @@ Deno.test("Global vs private recipes", async (t) => {
     });
 
     await t.step("4. Verify recipe is no longer public", async () => {
-        const res: Array<{recipe: RecipeDoc} | { error: string }> = await concept._getAllRecipesGlobal();
+        const res: Array<{ recipe: RecipeDoc } | { error: string }> = await concept._getAllRecipesGlobal();
         if (res.some(r => "error" in r)) throw new Error("Error fetching global recipes");
-        const recipes: ID[] = (res as Array<{recipe: RecipeDoc}>).map(r => r.recipe._id);
+        const recipes: ID[] = (res as Array<{ recipe: RecipeDoc }>).map(r => r.recipe._id);
 
         assertEquals(recipes.length, 0);
     });
 
 
+    await client.close();
+});
+
+Deno.test("Actions: setTitle", async (t) => {
+    const [db, client] = await testDb();
+    const concept = new RecipeConcept(db);
+
+    // IDs
+    const userID = "user_test_update" as ID;
+    const imposterID = "user_imposter" as ID;
+
+    let recipeToUpdate: ID;
+
+    // Setup: Create the initial recipe we will be modifying
+    await t.step("Setup: Create initial recipe", async () => {
+        const result = await concept.createRecipe({
+            owner: userID,
+            title: "Original Soup",
+            description: "Boil water."
+        });
+
+        if ("error" in result) throw new Error(result.error);
+
+        assertExists(result.recipe);
+        recipeToUpdate = result.recipe;
+    });
+
+    await t.step("1. Success: Update title to a new unique name", async () => {
+        const result = await concept.setRecipe({
+            requestedBy: userID,
+            recipe: recipeToUpdate,
+            title: "Improved Soup"
+        });
+
+        if ("error" in result) throw new Error(result.error);
+
+        const [fetchResult] = await concept._getRecipe({ owner: userID, title: "Improved Soup" });
+        if ("error" in fetchResult) throw new Error("error");
+
+        assertEquals(fetchResult.recipes.length, 1);
+        assertEquals(fetchResult.recipes[0]._id, recipeToUpdate);
+        assertEquals(fetchResult.recipes[0].title, "Improved Soup");
+    });
+
+    await t.step("2. Failure: Update title to one that already exists", async () => {
+        await concept.createRecipe({
+            owner: userID,
+            title: "Conflict Stew",
+            description: "I am in the way."
+        });
+
+        const result = await concept.setRecipe({
+            requestedBy: userID,
+            recipe: recipeToUpdate,
+            title: "Conflict Stew"
+        });
+
+        assertEquals(result, {
+            error: `A recipe with the title "Conflict Stew" already exists in your collection.`
+        });
+    });
+
+    await t.step("3. Failure: Imposter cannot update title", async () => {
+        const result = await concept.setRecipe({
+            requestedBy: imposterID,
+            recipe: recipeToUpdate,
+            title: "Hacked Soup"
+        });
+
+        assertEquals(result, {
+            error: `Sorry, you are not the owner of this recipe. You cannot edit the recipe.`
+        });
+    });
+
+    // Cleanup
     await client.close();
 });

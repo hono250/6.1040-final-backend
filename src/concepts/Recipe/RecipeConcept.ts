@@ -114,6 +114,33 @@ export default class RecipeConcept {
     }
 
     /**
+     * setRecipe(requestedBy: User, recipe: Recipe: title: string)
+     *
+     * **requires** this `recipe` has an owner who is this `requestedBy`, this `title` doesn't exist in this `requestedBy`'s set of recipes
+     *
+     * **effects** updates this `recipe` to have this `title
+     */
+    async setRecipe({ requestedBy, recipe, title }: { requestedBy: User, recipe: Recipe, title: string }): Promise<Empty | { error: string }> {
+        const existing = await this.checkRecipeAndOwner({ requestedBy, recipe });
+        if ("error" in existing) return { error: existing.error };
+
+        const duplicate = await this.recipes.findOne({
+            owner: requestedBy,
+            title: title
+        });
+
+        if (duplicate) {
+            return { error: `A recipe with the title "${title}" already exists in your collection.` };
+        }
+
+        await this.recipes.updateOne(
+            { _id: recipe, owner: requestedBy },
+            { $set: { title: title } }
+        );
+
+        return {};
+    }
+    /**
      * addIngredientToRecipe(requestedBy: User, recipe: Recipe, ingredient: Ingredient)
      *
      * **requires** this `recipe` has an owner who is this `requestedBy`, this `ingredient` isn't already in that `Recipe`
@@ -629,7 +656,7 @@ export default class RecipeConcept {
         // Fetch ALL recipes, then filter in JavaScript to find ANY ingredient matches
         const allRecipes = await this.recipes.find({}).toArray();
 
-        
+
         // Score recipes by matching ingredients
         const scored = allRecipes
             .map((recipe: RecipeDoc) => {
