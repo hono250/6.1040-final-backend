@@ -443,6 +443,48 @@ export const DeleteRecipeError: Sync = ({ request, error }) => ({
 });
 
 /**
+ * Set Recipe Title
+ * Request: POST /api/Recipe/setRecipe { token, recipe, title }
+ * Response: {}
+ */
+export const SetRecipeTitleRequest: Sync = ({
+  request, token, userId, recipe, title
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/Recipe/setRecipe", token, recipe, title },
+    { request }
+  ]),
+  where: async (frames) => {
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
+    return frames;
+  },
+  then: actions([
+    Recipe.setRecipe, { requestedBy: userId, recipe, title }
+  ]),
+});
+
+export const SetRecipeTitleResponse: Sync = ({ request }) => ({
+  when: actions(
+    [Requesting.request, { path: "/Recipe/setRecipe" }, { request }],
+    [Recipe.setRecipe, {}, {}]
+  ),
+  then: actions([
+    Requesting.respond, { request }
+  ]),
+});
+
+export const SetRecipeTitleError: Sync = ({ request, error }) => ({
+  when: actions(
+    [Requesting.request, { path: "/Recipe/setRecipe" }, { request }],
+    [Recipe.setRecipe, {}, { error }]
+  ),
+  then: actions([
+    Requesting.respond, { request, error }
+  ]),
+});
+
+/**
  * Copy Recipe (authenticated)
  * Request: POST /api/Recipe/copyRecipe { token, recipe }
  * Response: { recipe }

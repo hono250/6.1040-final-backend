@@ -76,6 +76,7 @@ export const exclusions: Array<string> = [
   // Recipe - all mutations and authenticated queries
   "/api/Recipe/createRecipe",
   "/api/Recipe/deleteRecipe",
+  "/api/Recipe/setRecipe",
   "/api/Recipe/addIngredientToRecipe",
   "/api/Recipe/removeIngredientFromRecipe",
   "/api/Recipe/setLink",
