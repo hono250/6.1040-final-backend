@@ -59,3 +59,7 @@ Our primary risk is time and scope. There is a chance that we will be unable to 
 
 Another risk that we're encountering is the feasibility of automating the import recipe process from other platforms. If analyzing external posts/videos for ingredients/recipe names is infeasible, then we plan to fall back on requiring manual importing of the data. 
 
+## Adjustments based on peer feedback/critique
+
+- Is there a sustained user need for this app? The goal is to address the problem of food waste, and we're looking at this primarily with ingredient-based search with the bonus and needed saving recipes feature. This combination also helps with users that want to cook with ingredients they have from public recipes, but also recipes that they might have saved from all over the Internet (which most apps don't have)
+- Make the goal of reducing waste more clear in the UI design: we added a new landing page that explains why food waste matters and how our app helps address this goal/problem as well
