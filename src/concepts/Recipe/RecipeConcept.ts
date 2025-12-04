@@ -640,11 +640,11 @@ export default class RecipeConcept {
      */
 
     /**
-     * _findRecipeByIngredient(ingredients: List<String>): (recipes: List<Recipe>)
+     * _findRecipeByIngredient(ingredients: List<String>, requestedBy?: User): (recipes: List<Recipe>)
      *
-     * **effects** returns all the `Recipes` that have these `ingredients` (which are the food names), where the initial recipes are the ones that have the most ingredients in these `ingredients`
+     * **effects** returns all the `Recipes` that have these `ingredients` (which are the food names) and are either public or owned by `requestedBy`, where the initial recipes are the ones that have the most ingredients in these `ingredients`
      */
-    async _findRecipeByIngredient({ ingredients }: { ingredients: string[] }): Promise<Array<{ recipes: RecipeDoc[] } | { error: string }>> {
+    async _findRecipeByIngredient({ ingredients, requestedBy }: { ingredients: string[], requestedBy?: User }): Promise<Array<{ recipes: RecipeDoc[] } | { error: string }>> {
         if (!ingredients || ingredients.length === 0) {
             return [{ error: "Ingredients list cannot be empty." }];
         }
@@ -653,8 +653,13 @@ export default class RecipeConcept {
         // Normalize input for the loop
         const normalizedInputs = ingredients.map((i) => i.toLowerCase());
 
-        // Fetch ALL recipes, then filter in JavaScript to find ANY ingredient matches
-        const allRecipes = await this.recipes.find({}).toArray();
+        // Build visibility filter: public OR owned by requestedBy
+        const visibilityFilter = requestedBy
+            ? { $or: [{ isPublic: true }, { owner: requestedBy }] }
+            : { isPublic: true };
+
+        // Fetch recipes matching visibility filter, then filter in JavaScript to find ANY ingredient matches
+        const allRecipes = await this.recipes.find(visibilityFilter).toArray();
 
 
         // Score recipes by matching ingredients
@@ -710,20 +715,26 @@ export default class RecipeConcept {
     }
 
     /**
-     * _search(query: String): (recipes: List<Recipe>)
+     * _search(query: String, requestedBy?: User): (recipes: List<Recipe>)
      *
-     * **effects** returns all the `Recipes` that have this `query` in this `title`
+     * **effects** returns all the `Recipes` that have this `query` in this `title` and are either public or owned by `requestedBy`
      */
-    async _search({ query }: { query: string }): Promise<Array<{ recipes: RecipeDoc[] } | { error: string }>> {
+    async _search({ query, requestedBy }: { query: string, requestedBy?: User }): Promise<Array<{ recipes: RecipeDoc[] } | { error: string }>> {
         if (!query || query.trim().length === 0) {
             return [{ error: "Query shouldn't be empty" }];
         }
 
         const normalized = query.toLowerCase();
 
+        // Build visibility filter: public OR owned by requestedBy
+        const visibilityFilter = requestedBy
+            ? { $or: [{ isPublic: true }, { owner: requestedBy }] }
+            : { isPublic: true };
+
         const matchingRecipes: RecipeDoc[] = await this.recipes
             .find({
                 title: { $regex: normalized, $options: "i" },
+                ...visibilityFilter,
             })
             .toArray();
 
@@ -841,17 +852,23 @@ export default class RecipeConcept {
 
     //     return [{ recipes: sortedIds }];
     // }
-    async _filterIngredientAndSearch({ query, ingredients }: { query: string, ingredients: string[] }): Promise<Array<{ recipes: RecipeDoc[] } | { error: string }>> {
+    async _filterIngredientAndSearch({ query, ingredients, requestedBy }: { query: string, ingredients: string[], requestedBy?: User }): Promise<Array<{ recipes: RecipeDoc[] } | { error: string }>> {
         if (!query || query.trim().length === 0) return [{ error: "Query cannot be empty." }];
         if (!ingredients || ingredients.length === 0) return [{ error: "Ingredients list cannot be empty." }];
 
         const regexIngredients = ingredients.map(ing => new RegExp(ing, 'i'));
         const normalizedInputs = ingredients.map((i) => i.toLowerCase());
 
-        // Fetch recipes matching title, then filter ingredients in JavaScript
+        // Build visibility filter: public OR owned by requestedBy
+        const visibilityFilter = requestedBy
+            ? { $or: [{ isPublic: true }, { owner: requestedBy }] }
+            : { isPublic: true };
+
+        // Fetch recipes matching title and visibility, then filter ingredients in JavaScript
         const recipeDocs: RecipeDoc[] = await this.recipes
             .find({
-                title: { $regex: query.toLowerCase(), $options: "i" }
+                title: { $regex: query.toLowerCase(), $options: "i" },
+                ...visibilityFilter,
             })
             .toArray();
 
