@@ -140,6 +140,7 @@ export default class RecipeConcept {
 
         return {};
     }
+
     /**
      * addIngredientToRecipe(requestedBy: User, recipe: Recipe, ingredient: Ingredient)
      *
@@ -373,9 +374,6 @@ export default class RecipeConcept {
         return { recipe: newRecipe._id };
     }
 
-    //TODO:
-    // parseFromLink() (llm augmented)
-
     private generateLLMPrompt(link: string): string {
         return `
         You are a helpful AI tool that extracts recipe information from a given link. You are only allowed to return data in the json formatted below, no other text.
@@ -400,8 +398,7 @@ export default class RecipeConcept {
             "title": "Recipe Title",
             "description": "Brief description of the recipe.",
             "ingredients": [
-                {"name": "ingredient name", "quantity": number, "unit": "unit of measurement"},
-                ...
+            {"name": "ingredient name", "quantity": "number OR string (e.g. 1, '1-2', '1/2')", "unit": "unit of measurement"},                ...
             ]
         }
 
@@ -446,7 +443,8 @@ export default class RecipeConcept {
             return false;
         }
         for (const ingred of responseJson.ingredients) {
-            if (!ingred.name || typeof ingred.quantity !== "number" || ingred.unit === undefined) {
+            const validQuantity = typeof ingred.quantity === "number" || typeof ingred.quantity === "string";
+            if (!ingred.name || !validQuantity || ingred.unit === undefined) {
                 console.log("LLM response ingredient missing name, quantity, or unit");
                 return false;
             }
@@ -454,6 +452,59 @@ export default class RecipeConcept {
         return true;
     }
 
+    // helper to process ingredient quantity
+    private processQuantity(val: string | number): number {
+        if (typeof val === "number") return val;
+
+        // 1. Map Unicode fractions to decimals
+        const unicodeMap: { [key: string]: string } = {
+            '½': ' 0.5', '⅓': ' 0.33', '⅔': ' 0.66',
+            '¼': ' 0.25', '¾': ' 0.75', '⅕': ' 0.2',
+            '⅖': ' 0.4', '⅗': ' 0.6', '⅘': ' 0.8',
+            '⅙': ' 0.16', '⅚': ' 0.83', '⅛': ' 0.125',
+            '⅜': ' 0.375', '⅝': ' 0.625', '⅞': ' 0.875'
+        };
+
+        // 2. Replace unicode chars
+        let valStr = val.trim();
+        for (const [char, replacement] of Object.entries(unicodeMap)) {
+            if (valStr.includes(char)) {
+                valStr = valStr.replace(char, replacement);
+            }
+        }
+
+        // 3. Remove alphabetic characters (e.g. if LLM returned "1 pound", keep "1")
+        // We keep digits, dots (.), slashes (/), hyphens (-), and spaces
+        valStr = valStr.replace(/[a-zA-Z]/g, "").trim();
+
+        // 4. Handle Ranges (e.g., "1-2") -> Returns Average
+        if (valStr.includes("-")) {
+            // Remove multiple hyphens if any, split by the first one
+            const parts = valStr.split("-").filter(p => p.trim() !== "");
+            if (parts.length === 2) {
+                return (this.processQuantity(parts[0]) + this.processQuantity(parts[1])) / 2;
+            }
+        }
+
+        // 5. Handle Mixed Numbers (e.g., "1 1/2" or "1 0.5") -> Sums them
+        // If there is a space between numbers, we assume it's additive
+        if (valStr.includes(" ")) {
+            const parts = valStr.split(" ").filter(part => part.trim() !== "");
+            // If we have multiple parts, sum them up (recursive)
+            if (parts.length > 1) {
+                return parts.reduce((acc, part) => acc + this.processQuantity(part), 0);
+            }
+        }
+
+        // 6. Handle Fractions (e.g., "1/2")
+        if (valStr.includes("/")) {
+            const [num, den] = valStr.split("/");
+            return parseFloat(num) / parseFloat(den);
+        }
+
+        // 7. Standard Float
+        return parseFloat(valStr);
+    }
 
     async parseFromLink({ requestedBy, link, llm }: { requestedBy: User, link: string, llm?: GeminiLLM }): Promise<{ recipe: RecipeDoc } | { error: string }> {
         if (!this.isValidLink(link)) {
@@ -498,7 +549,9 @@ export default class RecipeConcept {
         const recipeData = JSON.parse(llmResponse);
         const ingredients: IngredientDoc[] = [];
         for (const ingred of recipeData.ingredients) {
-            const newIngred = await this.createIngredientHelper(ingred.name, ingred.quantity, ingred.unit);
+            const finalQuantity = this.processQuantity(ingred.quantity);
+            const safeQuantity = isNaN(finalQuantity) ? -1 : finalQuantity;
+            const newIngred = await this.createIngredientHelper(ingred.name, safeQuantity, ingred.unit);
             ingredients.push(newIngred);
         }
         const newRecipe: RecipeDoc = {
@@ -539,6 +592,16 @@ export default class RecipeConcept {
         return newIngred;
     }
 
+    // Helper to recursively parse value in ingredient
+    private parseValue = (val: string): number => {
+        val = val.trim();
+        if (val.includes("/")) {
+            const [num, den] = val.split("/");
+            return parseFloat(num) / parseFloat(den);
+        }
+        return parseFloat(val);
+    };
+
     // Note: Is returning a list of IngredientDocs allowed (composite type)?
     /**
      * parseIngredients(requestedBy: User, recipe: Recipe, ingredientsText: String)
@@ -559,10 +622,33 @@ export default class RecipeConcept {
             if (parts.length !== 3) {
                 return { error: `Invalid ingredient format: ${line}` };
             }
-            const quantity = parseFloat(parts[0]);
+            const quantityString = parts[0].trim();
+            let quantity: number;
+
+            // 1. Check for Range (e.g. "1/4 - 1/2" or "1-2")
+            if (quantityString.includes("-")) {
+                const [minStr, maxStr] = quantityString.split("-");
+
+                // We parse both sides individually using the helper
+                const min = this.parseValue(minStr);
+                const max = this.parseValue(maxStr);
+
+                if (isNaN(min) || isNaN(max)) {
+                    return { error: `Invalid quantity range: ${quantityString}` };
+                }
+
+                // Average the range for a single numeric value
+                quantity = (min + max) / 2;
+            }
+            // 2. Check for Single Fraction (e.g. "1/2")
+            else {
+                quantity = this.parseValue(quantityString);
+            }
+            // 3. Final NaN Check
             if (isNaN(quantity)) {
                 return { error: `Invalid quantity: ${parts[0]}` };
             }
+
             const unit = parts[1].trim();
             const name = parts[2].trim();
             const newIngred = await this.createIngredientHelper(name, quantity, unit);
