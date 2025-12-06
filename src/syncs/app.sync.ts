@@ -241,7 +241,7 @@ export const UpdatePasswordError: Sync = ({ request, error }) => ({
  * Delete Account - Step 1: Delete all recipes
  */
 export const DeleteAccountDeleteRecipes: Sync = ({
-  request, token, userId, recipe
+  request, token, userId, recipe, recipeId
 }) => ({
   when: actions([
     Requesting.request,
@@ -251,11 +251,15 @@ export const DeleteAccountDeleteRecipes: Sync = ({
   where: async (frames) => {
     frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
     frames = await frames.query(Recipe._getAllRecipes, { owner: userId }, { recipe });
-    return frames; // 1 frame per recipe
+
+    return frames.map(($) => ({
+      ...$,
+      [recipeId]: ($[recipe] as any)._id
+    }));
   },
   then: actions(
     [Collecting.removeItemSystemwide, { item: recipe }],
-    [Recipe.deleteRecipe, { requestedBy: userId, recipe }]
+    [Recipe.deleteRecipe, { requestedBy: userId, recipe: recipeId }]
   ),
 });
 
