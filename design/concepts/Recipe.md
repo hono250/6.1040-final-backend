@@ -88,6 +88,9 @@
 	* **effects** returns all the `Recipes` that are either public or owned by `requestedBy` and have this `query` in this `title` and these `ingredients`, where the initial recipes are the ones that have the most ingredients in these `ingredients`
   * `_filterIngredientAndSearchWithinRecipes(recipes: List<Recipe> query: String, ingredients: List<String>): (newRecipes: List<Recipe>)`
 	* **effects** returns all the `Recipes` in these `recipes` that have this `query` in this `title` and these `ingredients`, where the initial recipes are the ones that have the most ingredients in these `ingredients`
+  * `_getRecipeById(recipe: Recipe): (recipe: Recipe)`
+	* **requires** this `recipe` exists in the set of `Recipes` (as an ID)
+	* **effects** returns the `Recipe` associated with this `recipe` ID
   * `_getRecipe(owner: User, title: String): (recipes: List<Recipe>)`
 	* **requires** this `owner` and this `title` exists in the set of `Recipes`
 	* **effects** returns the `Recipes` associated with this `owner` and this `title`

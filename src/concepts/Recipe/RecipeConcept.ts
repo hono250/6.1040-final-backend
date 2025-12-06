@@ -1061,6 +1061,22 @@ export default class RecipeConcept {
     }
 
     /**
+     * _getRecipeById(recipe: Recipe): (recipe: RecipeDoc)
+     *
+     * **requires** this `recipe` exists in the set of Recipes
+     *
+     * **effects** returns the `Recipe`s associated with this `recipe`
+     */
+    async _getRecipeById({ recipe }: { recipe: Recipe }): Promise<Array<{ recipe: RecipeDoc } | { error: string }>> {
+        const recipedoc = await this.recipes.findOne({ _id: recipe });
+        if (!recipedoc) {
+            return [{ error: `Recipe with id "${recipe}" not found.` }];
+        }
+
+        return [{ recipe: recipedoc }];
+    }
+
+    /**
      * _getAllRecipes(owner: User): (recipes: List<Recipe>)
      *
      * **requires** this `owner` exists in the set of `Recipes`

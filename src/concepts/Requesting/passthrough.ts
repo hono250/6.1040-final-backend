@@ -33,6 +33,7 @@ export const inclusions: Record<string, string> = {
 
   // Recipe - public queries for browsing recipes
   "/api/Recipe/_getRecipe": "public - view any recipe by owner and title",
+  "/api/Recipe/_getRecipeById": "public - view any recipe by id (TODO: add access control)",
   "/api/Recipe/_search": "public - search recipes by title",
   "/api/Recipe/_findRecipeByIngredient": "public - search recipes by ingredients",
   "/api/Recipe/_filterIngredientAndSearch": "public - search recipes by title and ingredients",
@@ -105,6 +106,8 @@ export const exclusions: Array<string> = [
   "/api/Recipe/createIngredientHelper",
   "/api/Recipe/generateLLMPrompt",
   "/api/Recipe/validateLLMResponse",
+  "/api/Recipe/processQuantity",
+  "/api/Recipe/parseValue",
 
   // Collecting - all need authentication
   "/api/Collecting/create",
