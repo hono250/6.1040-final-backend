@@ -2,24 +2,17 @@
 
 ## Task List
 
-| Task name | Instruction | Rationale |
-| --- | --- | --- |
-| Recipe Search vs Ingredient Search | Can you find a recipe that has “eggs” in it? | - Checks if users understand the difference between ingredient and full-recipe search.- Tests clarity of search functionality for unregistered users.- Observes how users interpret search results and filters. |
-| Manual Create Recipe | Find a recipe online and add it to the website manually. | - Tests navigation flow for adding new recipes.<br>- Ensures users can locate and use the “Add Recipe” feature.<br>- Validates whether account creation prompts are intuitive. |
-| LLM Create Recipe | Find a recipe online and add it to the website using our LLM. | - Compares usability between manual input and AI-assisted entry.<br>- Identifies user hesitation or confusion around AI automation.<br>- Reveals which creation path users prefer. |
-| Collections Flow | 1) Create a collection and share it with [facilitator’s email].<br>2) Add your recipe to the collection (if not already included). | - Evaluates users’ understanding of multi-step tasks.<br>- Tests ability to navigate between recipe and collection features.<br>- Checks sharing and collaboration flow. |
-| Specific Collection | Create a “Birthday” collection with foods you’d want your friends to cook for you at your birthday. | - Tests large-scale UI usability for collections.<br>- Observes whether adding multiple recipes feels intuitive.<br>- Evaluates organization and labeling affordances. |
-| Edit a public recipe | Add pepper to the “[xyz]” recipe. | - Validates user understanding of recipe ownership and editing rights.<br>- Checks if users can duplicate and then customize community recipes.<br>- Assesses the edit flow within recipe detail pages. |
-| Profile Edits | Change your display name. | - Ensures users can locate the profile area.<br>- Tests ease of updating personal information.<br>- Checks whether changes persist across sessions. |
-| Delete collection | Delete your first collection. | - Tests ability to find and manage existing collections.<br>- Checks if deletion confirmation is clear and safe.<br>- Evaluates feedback after a destructive action. |
-| Delete account | Delete your account. | - Evaluates how account deletion is surfaced and explained.<br>- Tests clarity and confirmation steps to prevent accidental loss.<br>- Ensures post-deletion messaging is understandable. |
-
-
-
-
-
-
-
+| Task name                          | Instruction                                                                                                                        | Rationale                                                                                                                                                                                                               |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Recipe Search vs Ingredient Search | Can you find a recipe that has “eggs” in it?                                                                                       | - Checks if users understand the difference between ingredient and full-recipe search.<br>- Tests clarity of search functionality for unregistered users.<br>- Observes how users interpret search results and filters. |
+| Manual Create Recipe               | Find a recipe online and add it to the website manually.                                                                           | - Tests navigation flow for adding new recipes.<br>- Ensures users can locate and use the “Add Recipe” feature.<br>- Validates whether account creation prompts are intuitive.                                          |
+| LLM Create Recipe                  | Find a recipe online and add it to the website using our LLM.                                                                      | - Compares usability between manual input and AI-assisted entry.<br>- Identifies user hesitation or confusion around AI automation.<br>- Reveals which creation path users prefer.                                      |
+| Collections Flow                   | 1) Create a collection and share it with [facilitator’s email].<br>2) Add your recipe to the collection (if not already included). | - Evaluates users’ understanding of multi-step tasks.<br>- Tests ability to navigate between recipe and collection features.<br>- Checks sharing and collaboration flow.                                                |
+| Specific Collection                | Create a “Birthday” collection with foods you’d want your friends to cook for you at your birthday.                                | - Tests large-scale UI usability for collections.<br>- Observes whether adding multiple recipes feels intuitive.<br>- Evaluates organization and labeling affordances.                                                  |
+| Edit a public recipe               | Add pepper to the “[xyz]” recipe.                                                                                                  | - Validates user understanding of recipe ownership and editing rights.<br>- Checks if users can duplicate and then customize community recipes.<br>- Assesses the edit flow within recipe detail pages.                 |
+| Profile Edits                      | Change your display name.                                                                                                          | - Ensures users can locate the profile area.<br>- Tests ease of updating personal information.<br>- Checks whether changes persist across sessions.                                                                     |
+| Delete collection                  | Delete your first collection.                                                                                                      | - Tests ability to find and manage existing collections.<br>- Checks if deletion confirmation is clear and safe.<br>- Evaluates feedback after a destructive action.                                                    |
+| Delete account                     | Delete your account.                                                                                                               | - Evaluates how account deletion is surfaced and explained.<br>- Tests clarity and confirmation steps to prevent accidental loss.<br>- Ensures post-deletion messaging is understandable.                               |
 
 
 
