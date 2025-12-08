@@ -31,6 +31,11 @@
 
 ## Key Risks and Changes
 
+**Final deadline**
+
+Adjustmants: 
+- We added parseIngredientsFromText: LLM-powered ingredient formatting that helps to reduce manual entry. The pain point was identified in user testing.
+
 **Beta deadline**
 
 Adjustments:
@@ -39,7 +44,7 @@ Adjustments:
 - We implemented private vs public recipes with `isPublic` flag (added privacy controls beyond initial plan)
 - We made `_getProfile` publically accessible for collection member display names
 
-Features deferred to final:
+Features deferred to final (if time allows):
 - Scaling recipes
 - Recipe organization/tags  
 - Ingredient substitutions

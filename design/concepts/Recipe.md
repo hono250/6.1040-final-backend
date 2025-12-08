@@ -107,6 +107,9 @@
   * `_scaleIngredients(inputIngredients: List<Ingredient>, scale: number): (ingredients: List<Ingredient>)`
 	* **requires** this `scale` is a positive number
 	* **effects** creates an ingredients for each ingredient in this `inputIngredients` (without adding to set of `Ingredients`) with `amount = amount * scale`, and returns the list of those ingredients.
+  * `_parseIngredientsFromText(ingredientsText: String, llm?: GeminiLLM): (formattedText: String)`
+    * **effects** uses this `llm` to parse unformatted ingredient text into structured format "quantity, unit, name" per line. Converts fractions to decimals, averages ranges, removes adjectives and preparation instructions. Returns formatted text for review.
+
 
 # Notes
 

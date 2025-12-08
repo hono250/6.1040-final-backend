@@ -1186,4 +1186,96 @@ export default class RecipeConcept {
         }));
         return [{ ingredients: scaledIngredients }];
     }
+
+    /**
+     * _parseIngredientsFromText(ingredientsText: string, llm?: GeminiLLM)
+     *
+     * Helper query to parse unformatted ingredient text using LLM
+     * Does NOT create/modify any recipe - just returns formatted text
+     *
+     * @returns formatted ingredients text as "quantity, unit, name" per line
+     */
+    async _parseIngredientsFromText({ ingredientsText, llm }: { ingredientsText: string, llm?: GeminiLLM }): Promise<Array<{ formattedText: string } | { error: string }>> {
+    if (!ingredientsText || ingredientsText.trim() === "") {
+        return [{ error: "Ingredients text cannot be empty" }];
+    }
+
+    // Initialize LLM if not provided
+    if (llm === undefined) {
+        const config = {
+        apiKey: Deno.env.get("GEMINI_API_KEY") || "",
+        };
+        if (!config.apiKey) {
+        return [{ error: "Gemini API key not configured." }];
+        }
+        llm = new GeminiLLM(config);
+    }
+
+    const prompt = `You are a recipe ingredient parser. Parse the following ingredient text into a structured format.
+
+    Input text:
+    ${ingredientsText}
+
+    Requirements:
+    1. Extract quantity, unit, and ingredient name for each line
+    2. Remove preparation instructions (e.g., "minced", "chopped", "diced", "melted") - only keep the ingredient name
+    3. Remove adjectives describing the ingredient (e.g., "large", "fresh", "ripe") - only keep the core ingredient
+    4. Convert fractions to decimals (e.g., "1/2" to "0.5", "¼" to "0.25")
+    5. Handle ranges by averaging (e.g., "1-2 tsp" to "1.5", "¼-½ cup" to "0.375")
+    6. If no quantity (e.g., "salt to taste"), use empty string for quantity
+    7. If no unit (e.g., "2 eggs"), use empty string for unit
+    8. Format: "quantity, unit, name" (one per line)
+
+    Examples:
+    Input: "1 green scallion"
+    Output: "1, , scallion"
+
+    Input: "2 cups all-purpose flour"
+    Output: "2, cups, flour"
+
+    Input: "½ teaspoon salt"
+    Output: "0.5, teaspoon, salt"
+
+    Input: "1-2 tablespoons sugar"
+    Output: "1.5, tablespoons, sugar"
+
+    Input: "1-2 cloves garlic, minced"
+    Output: "1.5, cloves, garlic"
+
+    Input: "3 large eggs"
+    Output: "3, , eggs"
+
+    Input: "2 tablespoons melted butter"
+    Output: "2, tablespoons, butter"
+
+    Input: "salt to taste"
+    Output: ", , salt"
+
+    Output ONLY the formatted ingredients, one per line. Do not include any explanations, markdown formatting, or extra text.`;
+
+    let llmResponse = "";
+    for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+        llmResponse = await llm.executeLLM(prompt);
+        
+        // Clean up response - remove markdown code blocks if present
+        llmResponse = llmResponse.replace(/```.*?\n/g, '').replace(/```/g, '').trim();
+        
+        if (!llmResponse || llmResponse.trim() === "") {
+            throw new Error("LLM returned empty response");
+        }
+
+        // success
+        break;
+        } catch (error) {
+        console.error(`Attempt ${attempt + 1} failed:`, error);
+        if (attempt === 2) {
+            console.log("LLM request failed after 3 attempts");
+            return [{ error: "Failed to parse ingredients after 3 attempts" }];
+        }
+        }
+    }
+
+    return [{ formattedText: llmResponse.trim() }];
+    }
 }

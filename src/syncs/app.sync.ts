@@ -1163,6 +1163,37 @@ export const ViewRecipeAuthenticatedRequest: Sync = ({
   ]),
 });
 
+/**
+ * Parse Ingredients From Text
+ * Request: POST /api/Recipe/parseIngredientsFromText { ingredientsText }
+ * Response: { formattedText }
+ */
+export const ParseIngredientsFromTextRequest: Sync = ({
+  request, ingredientsText, formattedText, llm
+}) => ({
+  when: actions([
+    Requesting.request,
+    { path: "/Recipe/_parseIngredientsFromText", ingredientsText }, 
+  ]),
+  where: async (frames) => {
+    frames = await frames.query(Recipe._parseIngredientsFromText, { ingredientsText, llm }, { formattedText });
+    return frames;
+  },
+  then: actions([
+    Requesting.respond, { request, formattedText }
+  ]),
+});
+
+export const ParseIngredientsFromTextError: Sync = ({ request, error }) => ({
+  when: actions(
+    [Requesting.request, { path: "/Recipe/_parseIngredientsFromText" }, { request }], 
+    [Recipe._parseIngredientsFromText, {}, { error }]
+  ),
+  then: actions([
+    Requesting.respond, { request, error }
+  ]),
+});
+
 // ============================================================================
 // COLLECTION MANAGEMENT
 // ============================================================================

@@ -98,7 +98,7 @@ export const exclusions: Array<string> = [
   "/api/Recipe/_searchWithinRecipes",
   "/api/Recipe/_filterIngredientAndSearchWithinRecipes",
   "/api/Recipe/_getAllRecipes",
-
+  "/api/Recipe/_parseIngredientsFromText",
 
   // Recipe - private helper methods (not for external use)
   "/api/Recipe/isValidLink",

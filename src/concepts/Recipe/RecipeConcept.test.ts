@@ -1,4 +1,5 @@
 import {
+    assert,
     assertArrayIncludes,
     assertEquals,
     assertExists,
@@ -870,5 +871,78 @@ Deno.test("Actions: setTitle", async (t) => {
     });
 
     // Cleanup
+    await client.close();
+});
+
+Deno.test("Parse Ingredients From Text", async (t) => {
+    const [db, client] = await testDb();
+    const concept = new RecipeConcept(db);
+
+    await t.step("1. Parse basic ingredients", async () => {
+        const ingredientsText = `1 green scallion
+2 cups flour
+half teaspoon salt
+1-2 tablespoons sugar`;
+
+        const [result] = await concept._parseIngredientsFromText({ ingredientsText });
+        
+        console.log("Basic result:", result);
+        
+        if ("error" in result) throw new Error(result.error);
+        
+        console.log("Formatted text:\n", result.formattedText);
+        
+        const lines = result.formattedText.split("\n");
+        assert(lines.length > 0, "Should have at least one line");
+        
+        for (const line of lines) {
+            assert(line.includes(","), `Line should contain commas: ${line}`);
+        }
+    });
+
+    await t.step("2. Handle empty input", async () => {
+        const [result] = await concept._parseIngredientsFromText({ ingredientsText: "" });
+        
+        console.log("Empty input result:", result);
+        
+        if (!("error" in result)) throw new Error("Should return error for empty input");
+        assertEquals(result.error, "Ingredients text cannot be empty");
+    });
+
+    await t.step("3. Parse complex ingredients with fractions", async () => {
+        const ingredientsText = `¼ cup olive oil
+1-2 cloves garlic, minced
+½ teaspoon red pepper flakes
+2 ½ cups water
+salt to taste`;
+
+        const [result] = await concept._parseIngredientsFromText({ ingredientsText });
+        
+        console.log("Complex result:", result);
+        
+        if ("error" in result) throw new Error(result.error);
+        
+        console.log("Complex formatted text:\n", result.formattedText);
+        
+        const lines = result.formattedText.split("\n");
+        assert(lines.length >= 4, "Should have at least 4 lines");
+    });
+
+    await t.step("4. Parse messy real-world paste", async () => {
+        const ingredientsText = `3 large eggs
+1 1/2 cups all-purpose flour
+1 cup whole milk
+2 tablespoons melted butter
+pinch of salt`;
+
+        const [result] = await concept._parseIngredientsFromText({ ingredientsText });
+        
+        console.log("Messy result:", result);
+        
+        if ("error" in result) throw new Error(result.error);
+        
+        console.log("Messy formatted text:\n", result.formattedText);
+    });
+
     await client.close();
 });
