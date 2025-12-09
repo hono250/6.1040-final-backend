@@ -2,3 +2,6 @@
 
 ## Christine 
 
+It felt easy to collaborate with my team, largely because we all shared the same goal (as discussing during our team contract): we wanted to build an impactful app that we would feel proud to show to friends and strangers. A key takeaway for me was the importance of early planning to combat procrastination. By meeting early to discuss the upcoming assignments and distributing tasks then, we mostly avoided the stress of finishing the assignment right before the deadline and I felt much better about getting the assignments done on time compared to previous group projects and assignments. 
+
+I learned more on how to use MongoDB with their search operations when implementing the Recipe actions to search for recipes by ingredients and title query. On the frontend side, the user testing phase was particularly valuable. There are some tasks or features that seem obvious to us as developers, but don't always translate well to the user, so getting user feedback and debriefing with the users was essential to improving our app and ensuring our core features were intuitive. 
