@@ -7,6 +7,7 @@ A web application that helps users reduce food waste by finding recipes based on
 ### Assignment: Functional Design
 - [Design summary](design/design-summary.md)
 - [Development plan](design/development-plan.md)
+- [Final reflection](<design/final reflection.md>)
 - [Updated problem framing](design/problem-framing.md)
 - [Concept specifications](design/concepts/concept-overview.md)
 - [Syncs](design/syncs.md)
