@@ -1165,32 +1165,44 @@ export const ViewRecipeAuthenticatedRequest: Sync = ({
 
 /**
  * Parse Ingredients From Text
- * Request: POST /api/Recipe/parseIngredientsFromText { ingredientsText }
+ * Request: POST /api/Recipe/_parseIngredientsFromText { ingredientsText }
  * Response: { formattedText }
  */
 export const ParseIngredientsFromTextRequest: Sync = ({
-  request, ingredientsText, formattedText, llm
+  request, token, userId, ingredientsText, formattedText,error
 }) => ({
   when: actions([
     Requesting.request,
-    { path: "/Recipe/_parseIngredientsFromText", ingredientsText }, 
+    { path: "/Recipe/_parseIngredientsFromText", token, ingredientsText },
+    { request }
   ]),
   where: async (frames) => {
-    frames = await frames.query(Recipe._parseIngredientsFromText, { ingredientsText, llm }, { formattedText });
-    return frames;
+    const originalFrame = frames[0];
+
+    frames = await frames.query(UserAuthentication._getSessionUser, { token }, { userId });
+    frames = await frames.query(Recipe._parseIngredientsFromText, { ingredientsText }, { formattedText });
+
+    const result = frames[0][formattedText];
+    
+    console.log("Result type:", typeof result);
+    console.log("Result value:", result);
+
+    if (!result || typeof result !== 'string') {
+      return new Frames({ 
+        ...originalFrame, 
+        [formattedText]: null,
+        [error]: "Failed to parse ingredients" 
+      });
+    }
+
+    return new Frames({ 
+      ...originalFrame, 
+      [formattedText]: result,
+      [error]: null
+    });
   },
   then: actions([
-    Requesting.respond, { request, formattedText }
-  ]),
-});
-
-export const ParseIngredientsFromTextError: Sync = ({ request, error }) => ({
-  when: actions(
-    [Requesting.request, { path: "/Recipe/_parseIngredientsFromText" }, { request }], 
-    [Recipe._parseIngredientsFromText, {}, { error }]
-  ),
-  then: actions([
-    Requesting.respond, { request, error }
+    Requesting.respond, { request, formattedText, error }
   ]),
 });
 

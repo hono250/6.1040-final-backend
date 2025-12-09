@@ -625,8 +625,12 @@ export default class RecipeConcept {
             const quantityString = parts[0].trim();
             let quantity: number;
 
-            // 1. Check for Range (e.g. "1/4 - 1/2" or "1-2")
-            if (quantityString.includes("-")) {
+            // 1. Special case: "-1" means no quantity
+            if (quantityString === "-1" || quantityString === "") {
+                quantity = -1;
+            }
+            // 2. Check for Range (e.g. "1/4 - 1/2" or "1-2")
+            else if (quantityString.includes("-")) {
                 const [minStr, maxStr] = quantityString.split("-");
 
                 // We parse both sides individually using the helper
@@ -640,11 +644,11 @@ export default class RecipeConcept {
                 // Average the range for a single numeric value
                 quantity = (min + max) / 2;
             }
-            // 2. Check for Single Fraction (e.g. "1/2")
+            // 3. Check for Single Fraction (e.g. "1/2")
             else {
                 quantity = this.parseValue(quantityString);
             }
-            // 3. Final NaN Check
+            // 4. Final NaN Check
             if (isNaN(quantity)) {
                 return { error: `Invalid quantity: ${parts[0]}` };
             }
@@ -1256,23 +1260,23 @@ export default class RecipeConcept {
     let llmResponse = "";
     for (let attempt = 0; attempt < 3; attempt++) {
         try {
-        llmResponse = await llm.executeLLM(prompt);
-        
-        // Clean up response - remove markdown code blocks if present
-        llmResponse = llmResponse.replace(/```.*?\n/g, '').replace(/```/g, '').trim();
-        
-        if (!llmResponse || llmResponse.trim() === "") {
-            throw new Error("LLM returned empty response");
-        }
+            llmResponse = await llm.executeLLM(prompt);
+            
+            // Clean up response - remove markdown code blocks if present
+            llmResponse = llmResponse.replace(/```.*?\n/g, '').replace(/```/g, '').trim();
+            
+            if (!llmResponse || llmResponse.trim() === "") {
+                throw new Error("LLM returned empty response");
+            }
 
-        // success
-        break;
+            // success
+            break;
         } catch (error) {
-        console.error(`Attempt ${attempt + 1} failed:`, error);
-        if (attempt === 2) {
-            console.log("LLM request failed after 3 attempts");
-            return [{ error: "Failed to parse ingredients after 3 attempts" }];
-        }
+            console.error(`Attempt ${attempt + 1} failed:`, error);
+            if (attempt === 2) {
+                console.log("LLM request failed after 3 attempts");
+                return [{ error: "Failed to parse ingredients after 3 attempts" }];
+            }
         }
     }
 

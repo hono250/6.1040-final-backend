@@ -142,14 +142,17 @@ export async function seedDatabase(
     console.log(`Found ${categories.length} categories`);
     
     let totalSeeded = 0;
+    const MAX_RECIPES = 400;
     
     for (const category of categories) {
+      if (totalSeeded >= MAX_RECIPES) break;
       console.log(`  Fetching category: ${category}`);
       
       const meals = await fetchMealsByCategory(category);
       console.log(`    Found ${meals.length} meals`);
       
       for (const meal of meals) {
+        if (totalSeeded >= MAX_RECIPES) break; 
         try {
           // Fetch full meal details
           const fullMeal = await fetchMealById(meal.idMeal);
