@@ -20,7 +20,7 @@
 
 ### Design Changes
 
-1. Split our User concept into 3 -- Profile, User, and Sessioning upon feedback
+1. Split our User concept into 2 -- Profile and User upon feedback
 2. Added more actions to the Recipe class so that it can search recipes by the list of ingredients, and search by the list of ingredients AND a list of recipes (so it's an additional step of filtering)
 3. Added an action in collecting concept to allow seemless account deletion 
 

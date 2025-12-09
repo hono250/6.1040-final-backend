@@ -1,12 +1,21 @@
-Design summary: A summary of the overall design: how the concepts work together to solve the problem; how the design addresses any concerns that your ethics analysis raised; which issues remain unclear.
-
 # Design Summary
+## Changes Made
+
+Our first big change since the functional design submission was breaking the User concept into two -- User and Profile because they had two different purposes. 
+
+We added more actions throughout the process for frontend purposes. For example we added a getProfileById action so that the frontend can pass in user IDs to fetch each user's display names (used in the Collection page). 
+
+We also included more actions to the Recipe class so that it can search recipes by the list of ingredients, and search by the list of ingredients AND a list of recipes (an additional step of filtering if we want to use both "search" features at the same time). Another key Recipe action was `parseIngredients`, which is particularly helpful in manual recipe adding because user testing and our TA suggested that manually adding commas to properly format ingredients is a big pain point in manual entry. 
+
+Our last few key changes deal with UI/UX. Per peer feedback, we aimed to make our app more noticeable in addressing our problem of food waste. We added a landing page that discusses the problem and how cooked! can be used to reduce food waste.
 
 ## Concepts
 
-We currently have 3 main concepts: **User**, **Collecting**, **Recipe**
+We have 4 concepts: **User**, **Profile**, **Collecting**, **Recipe**
 
-**User** handles the account setup and management—when users visit the site, they'll be able to view global recipes, but won't be able to do anything else until creating an account and/or signing in. **User** also handles session authentication, and will be relied upon in syncs to ensure users' identity.
+**User** handles the account management and session authentication, and will be relied upon in syncs to ensure users' identity. When users visit the site, they'll be able to view global recipes, but won't be able to do anything else until they create an account and/or sign in. 
+
+**Profile** handles account setup and information, taking care of their display name for frontend purposes. 
 
 **Recipe** is the core recipe representation—it mainly handles CRUD operations, and allows users to define various elements of the recipe, including the title, ingredients, and optionally, a link to the original recipe (if imported from another platform), and a description. It also keeps track of ownership.
 
