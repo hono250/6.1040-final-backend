@@ -2,17 +2,16 @@
 
 ## Feature checkpoints
 
-| Feature                     | Delivered by which stage         |
-| --------------------------- | -------------------------------- |
-| Backend Concepts + Syncs    | 11/22 // 11/23 morning           |
-| Saving Recipes              | alpha checkpoint                 |
-| Account creation/management | Alpha checkpoint                 |
-| Ingredient search           | Alpha checkpoint                 |
-| Shared recipe collections   | Alpha checkpoint                 |
-| Scaling recipes             | Beta checkpoint                  |
-| Recipe organization (tags)  | Beta checkpoint                  |
-| Ingredient Substitutions    | Final submission, if time allows |
-| Progress Tracking           | Final submission, if time allows |
+| Feature                     | Delivered by which stage             |
+| --------------------------- | ------------------------------------ |
+| Backend Concepts + Syncs    | 11/22 // 11/23 morning               |
+| Saving Recipes              | alpha checkpoint                     |
+| Account creation/management | Alpha checkpoint                     |
+| Ingredient search           | Alpha checkpoint                     |
+| Shared recipe collections   | Alpha checkpoint                     |
+| UI updates                  | Beta checkpoint                      |
+| Frictionless user journey   | Beta checkpoint and final submission |
+
 **Updated notes**: We changed to finish the backend before the frontend and connecting the two pieces. We ended up finishing the backend where we would have finished the frontend pages. Over the weekend, we worked on some parts of the frontend and updated with functional design feedback. We primarily finished the frontend-backend pieces on Monday and Tuesday before the alpha checkpoint. 
 ## Task management
 
@@ -33,8 +32,9 @@
 
 **Final deadline**
 
-Adjustmants: 
+Adjustments: 
 - We added parseIngredientsFromText: LLM-powered ingredient formatting that helps to reduce manual entry. The pain point was identified in user testing.
+- We also fixed bugs founds from user testing and implemented some of the user testers' suggestions. For example, our search by title feature did not render properly in the frontend because it got overridden from our `getAllRecipes` query. Based on one tester's feedback, we updated the sidebar layout to scale proportionally with larger window sizes.
 
 **Beta deadline**
 
